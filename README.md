@@ -15,15 +15,16 @@ $ npm install sardine -g
 Usage: sardine [options] [command]
 
 
- Commands:
+Commands:
 
-   create <suffix>  Create a new migration directory
+  init             Initialize a new Sardine project
+  create <suffix>  Create a new migration directory
 
- Options:
+Options:
 
-   -h, --help     output usage information
-   -V, --version  output the version number
-   -V, --verbose  Display verbose information
+  -h, --help     output usage information
+  -V, --version  output the version number
+  -V, --verbose  Display verbose information
 ```
 # License
 

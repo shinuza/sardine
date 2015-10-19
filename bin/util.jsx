@@ -29,4 +29,4 @@ function showInfo(message) {
   console.info(colors.green('INFO:') + ' ' + message);
 }
 
-export default { config, showError, showInfo };
+export default { SARDINE_CONFIG, config, showError, showInfo };
