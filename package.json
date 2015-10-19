@@ -33,10 +33,12 @@
     "babel": "^5.8.23",
     "babel-runtime": "^5.8.25",
     "bluebird": "^2.10.2",
+    "co": "^4.6.0",
     "colors": "^1.1.2",
     "commander": "^2.9.0",
     "lodash": "^3.10.1",
     "mkdirp": "^0.5.1",
+    "pg-promise": "^2.0.12",
     "source-map-support": "^0.3.2"
   },
   "devDependencies": {

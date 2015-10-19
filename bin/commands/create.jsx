@@ -5,7 +5,8 @@ import mkdirp from 'mkdirp';
 
 import { snakeDate } from '../../lib/util';
 import { MissingConfiguration, UndefinedConfiguration }  from '../../lib/errors';
-import { config, showError, showInfo } from '../util';
+import { config } from '../../lib/config';
+import { showError, showInfo } from '../util';
 
 function create(suffix) {
   const date = snakeDate(new Date());
@@ -25,11 +26,8 @@ function create(suffix) {
     .catch(MissingConfiguration, (e) => {
       showError(e.message);
     })
-    .catch(UndefinedConfiguration, (e) => {
-      showError(e.message);
-    })
     .catch((e) => {
-      throw e;
+      showError(e.stack);
     });
 
 
