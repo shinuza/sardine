@@ -31,15 +31,14 @@ function findMigrations() {
       db.query(`SELECT * FROM ${conf.tableName} ORDER BY name`));
 }
 
-function findLastMigration() {
-  return getDb().then(({ db, conf }) => {
-    db.one(`SELECT * FROM ${conf.tableName} WHERE applied = true ORDER BY migration_time DESC LIMIT 1`);
-  });
+function findLastAppliedMigration() {
+  return getDb().then(({ db, conf }) =>
+    db.one(`SELECT * FROM ${conf.tableName} WHERE applied = true ORDER BY migration_time DESC LIMIT 1`));
 }
 
 function recordMigration(migration) {
   return getDb().then(({ db, conf }) =>
-    db.query(`INSERT INTO ${conf.tableName}` + '(name, applied, migration_time, checksum) VALUES (${name}, ${applied}, now(), ${checksum})', {
+    db.query(`INSERT INTO ${conf.tableName} ` + '(name, applied, migration_time, checksum) VALUES (${name}, ${applied}, now(), ${checksum})', {
       name: migration.name,
       applied: true,
       checksum: migration.checksum,
@@ -48,11 +47,11 @@ function recordMigration(migration) {
 
 function updateMigration(migration, direction) {
   return getDb().then(({ db, conf }) =>
-    db.query(`UPDATE ${conf.tableName}` + 'SET applied = ${applied} WHERE name = ${name}', {
+    db.query(`UPDATE ${conf.tableName} ` + 'SET applied = ${applied} WHERE name = ${name}', {
       table: conf.tableName,
       applied: direction === 'up',
       name: migration.name,
     }));
 }
 
-export default { getDb, findMigrations, recordMigration, updateMigration };
+export default { getDb, findMigrations, findLastAppliedMigration, recordMigration, updateMigration };

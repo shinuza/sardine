@@ -19,6 +19,7 @@ Commands:
   init             Initialize a new Sardine project
   create <suffix>  Create a new migration directory
   update|up        Migrate to the database to the latest version
+  rollback|rb      Revert last migration
 
 Options:
 

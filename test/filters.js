@@ -23,4 +23,20 @@ describe('Filters', function() {
       assert.deepEqual(discovered.filter(filter), expected);
     });
   });
+
+  describe('#rollback', function() {
+    it('should resolve rollback migration', function() {
+      const discovered = [
+        {name: 'foo'},
+        {name: 'bar'},
+        {name: 'baz'}
+      ];
+      const last = {name: 'foo', applied: true};
+      const expected = [
+        {'name': 'foo'}
+      ];
+      const filter = filters.rollback(last);
+      assert.deepEqual(discovered.filter(filter), expected);
+    });
+  });
 });

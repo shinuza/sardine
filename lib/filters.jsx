@@ -9,4 +9,10 @@ function update(recorded) {
   }
 }
 
-export default { update };
+function rollback(last) {
+  return function(m) {
+    return m.name === last.name;
+  }
+}
+
+export default { update, rollback };
