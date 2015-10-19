@@ -33,6 +33,7 @@
     "babel": "^5.8.23",
     "babel-runtime": "^5.8.25",
     "bluebird": "^2.10.2",
+    "colors": "^1.1.2",
     "commander": "^2.9.0",
     "lodash": "^3.10.1",
     "mkdirp": "^0.5.1",
