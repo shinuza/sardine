@@ -12,4 +12,25 @@ class UndefinedConfiguration extends Error {
   }
 }
 
-export default { MissingConfiguration, UndefinedConfiguration };
+class IntegrityError extends Error {
+  constructor(message) {
+    super();
+    this.message = message;
+  }
+}
+
+class MissingMigrationDirectory extends Error {
+  constructor(message) {
+    super();
+    this.message = message;
+  }
+}
+
+class TransactionError extends Error {
+  constructor(message) {
+    super();
+    this.message = message;
+  }
+}
+
+export default { MissingConfiguration, MissingMigrationDirectory, UndefinedConfiguration, TransactionError };

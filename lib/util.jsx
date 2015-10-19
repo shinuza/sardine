@@ -1,3 +1,4 @@
+import { createHash } from 'crypto';
 import _ from 'lodash';
 
 function twoDigits(num) {
@@ -17,4 +18,10 @@ function snakeDate(date) {
   return `${year}${month}${day}_${hours}${minutes}${seconds}`;
 }
 
-export default { twoDigits, snakeDate };
+function checksum(...descrim) {
+  const shasum = createHash('sha1');
+  descrim.forEach((part) => shasum.update(part));
+  return shasum.digest('hex');
+}
+
+export default { checksum, snakeDate, twoDigits };

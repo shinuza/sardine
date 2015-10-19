@@ -2,6 +2,8 @@ import program from 'commander';
 
 import init from './commands/init';
 import create from './commands/create';
+import update from './commands/update';
+import rollback from './commands/rollback';
 
 program
   .version(require('../package.json').version)
@@ -16,6 +18,18 @@ program
   .command('create <suffix>')
   .description('Create a new migration directory')
   .action(create);
+
+program
+  .command('update')
+  .alias('up')
+  .description('Migrate to the database to the latest version')
+  .action(update);
+
+program
+.command('rollback')
+.alias('rb')
+.description('Revert last migration')
+.action(rollback);
 
 program.parse(process.argv);
 

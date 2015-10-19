@@ -1,0 +1,6 @@
+- Don't checksum for the last migration
+- Linting
+- Add verbose mode
+- Add support for mysql
+- Add support for mssql
+- Add support for sqlite3
