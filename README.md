@@ -30,7 +30,7 @@ Create a new step
 $ sardine step v1 foo
 ```
 
-This creates `./up/00_foo.sql and `./down/00_foo.sql`. Edit them with your sql.
+This creates `./up/00_foo.sql` and `./down/00_foo.sql`. Edit them with your sql.
 
 ```sql
 -- 20151015_105530_v1/up/00_foo.sql
@@ -64,7 +64,7 @@ Sardine will:
   - Read every files in the `up` and `down` directory
   - Apply each file by alphabetical order in each migration directory for a given direction
   - Prevent you from running a migration if it has changed. Unless it's the latest one.
-  - Ensure you have a `down` and `up` step with matching names
+  - Ensure you have a `up` and a `down` step with matching names
 
 Sardine will **not**:
 
