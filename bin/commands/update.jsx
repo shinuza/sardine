@@ -34,7 +34,7 @@ function update(command) {
             const batch = discovered.filter(updateFilter(recorded));
 
             if(!batch.length) {
-              showInfo('Everything already up to date');
+              return showInfo('Everything already up to date');
             }
 
             return migrations.up({ batch, recorded });
