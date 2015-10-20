@@ -33,6 +33,7 @@ program
 
 program.parse(process.argv);
 
-if (!process.argv.slice(2).length) {
+// Unknown command or no command given
+if(!(program.args[0].constructor === program.Command) || !process.argv.slice(2).length) {
   program.help();
 }
