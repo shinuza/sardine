@@ -28,12 +28,17 @@ function createMigrationTable(db) {
 
 function findMigrations() {
   return getDb().then(({ db, conf }) =>
-      db.query(`SELECT * FROM ${conf.tableName} ORDER BY name`));
+    db.query(`SELECT * FROM ${conf.tableName} ORDER BY name`));
 }
 
-function findLastAppliedMigration() {
-  return getDb().then(({ db, conf }) =>
-    db.one(`SELECT * FROM ${conf.tableName} WHERE applied = true ORDER BY migration_time DESC LIMIT 1`));
+function findLastAppliedMigrations(limit = 1) {
+  return getDb().then(({ db, conf }) => {
+    let query = `SELECT * FROM ${conf.tableName} WHERE applied = true ORDER BY migration_time DESC`;
+    if(limit) {
+      query = query + ` LIMIT ${limit}`;
+    }
+    return db.query(query);
+  });
 }
 
 function recordMigration(migration) {
@@ -54,4 +59,4 @@ function updateMigration(migration, direction) {
     }));
 }
 
-export default { getDb, findMigrations, findLastAppliedMigration, recordMigration, updateMigration };
+export default { getDb, findMigrations, findLastAppliedMigrations, recordMigration, updateMigration };
