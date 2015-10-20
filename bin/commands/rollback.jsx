@@ -34,7 +34,7 @@ function rollback(command) {
             const batch = discovered.filter(rollbackFilter(recorded));
 
             if(!batch.length) {
-              showInfo('Already at the earliest revision');
+              return showInfo('Already at the earliest revision');
             }
 
             return migrations.down({ batch, recorded });
