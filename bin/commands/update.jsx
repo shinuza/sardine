@@ -1,7 +1,9 @@
+import pgp from 'pg-promise';
+
 import db from '../../lib/db';
+import Migrations from '../../lib/migrations';
 import { UndefinedConfiguration } from '../../lib/errors';
 import { update as updateFilter } from '../../lib/filters';
-import Migrations from '../../lib/migrations';
 import { config } from '../../lib/config';
 import { showError, showInfo, showVerbose } from '../util';
 
@@ -40,11 +42,11 @@ function update(command) {
             return migrations.up({ batch, recorded });
           }))
     })
-    .then(() => process.exit(0))
     .catch((e) => {
       showError(e.stack || e.message);
-      process.exit(1);
-    });
+      process.exitCode = 1;
+    })
+    .then(pgp.end);
 }
 
 export default update;
