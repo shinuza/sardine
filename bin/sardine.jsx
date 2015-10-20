@@ -34,6 +34,7 @@ program
 program.parse(process.argv);
 
 // Unknown command or no command given
-if(!(program.args[0].constructor === program.Command) || !process.argv.slice(2).length) {
+const firstArg = program.args[0];
+if(!(firstArg && firstArg.constructor === program.Command) || !process.argv.slice(2).length) {
   program.help();
 }
