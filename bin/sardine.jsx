@@ -7,7 +7,7 @@ import rollback from './commands/rollback';
 
 program
   .version(require('../package.json').version)
-  .option('-V, --verbose', 'Display verbose information', false);
+  .option('-v, --verbose', 'Display verbose information', false);
 
 program
   .command('init')
@@ -31,9 +31,12 @@ program
   .description('Revert last migration')
   .action(rollback);
 
-program.parse(process.argv);
+program
+  .command('*')
+  .action(() => program.help());
 
-// Unknown command or no command given
-if(!(program.args[0].constructor === program.Command) || !process.argv.slice(2).length) {
+if(!process.argv.slice(2).length) {
   program.help();
 }
+
+program.parse(process.argv);
