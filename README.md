@@ -18,7 +18,7 @@ Initialize a new sardine project
 $ sardine init
 ```
 
-Create a new migration
+Edit the configuration to match you database connection settings. Then create a new migration
 
 ```
 $ sardine create v1
