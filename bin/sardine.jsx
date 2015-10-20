@@ -26,10 +26,10 @@ program
   .action(update);
 
 program
-.command('rollback')
-.alias('rb')
-.description('Revert last migration')
-.action(rollback);
+  .command('rollback')
+  .alias('down')
+  .description('Revert last migration')
+  .action(rollback);
 
 program.parse(process.argv);
 
