@@ -33,4 +33,4 @@ class TransactionError extends Error {
   }
 }
 
-export default { MissingConfiguration, MissingMigrationDirectory, UndefinedConfiguration, TransactionError };
+export default { IntegrityError, MissingConfiguration, MissingMigrationDirectory, TransactionError, UndefinedConfiguration };

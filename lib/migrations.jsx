@@ -6,7 +6,7 @@ import Promise from 'bluebird';
 import co from 'co';
 import _ from 'lodash';
 
-import { TransactionError } from './errors';
+import { IntegrityError, TransactionError } from './errors';
 import { checksum } from './util';
 import { getDb, recordMigration, updateMigration } from './db';
 
