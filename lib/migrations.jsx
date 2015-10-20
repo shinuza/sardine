@@ -87,6 +87,7 @@ class Migrations extends EventEmitter {
   }
 
   applyOne({ migration, recorded, direction }) {
+    this.emit('applyOne', migration);
     const known = _.find(recorded, (rm) => rm.name === migration.name);
 
     if(known) {
@@ -98,10 +99,12 @@ class Migrations extends EventEmitter {
 
     return getDb()
       .then(({ db }) => {
+        const self = this;
         return db.tx(function transaction() {
           const batch = migration[direction].files.map((file) => {
             const path = `${migration.name}/${direction}/${file.filename}`;
 
+            self.emit('step', path);
             return this.query(file.contents.toString());
           });
           return this.batch(batch);
