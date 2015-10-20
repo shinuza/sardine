@@ -6,7 +6,7 @@ import Promise from 'bluebird';
 import co from 'co';
 import _ from 'lodash';
 
-import { TransactionError } from './errors';
+import { IntegrityError, TransactionError } from './errors';
 import { checksum } from './util';
 import { getDb, recordMigration, updateMigration } from './db';
 
@@ -22,7 +22,10 @@ class Migrations extends EventEmitter {
     return fs.readdirAsync(this.rootDir).then((dirs) =>
       Promise.all(
         dirs.map((dir) => this.read(resolve(this.rootDir, dir)))
-      )
+      ).then((discovered) => {
+        this.discovered = discovered;
+        return discovered;
+      })
     );
   }
 
@@ -69,6 +72,10 @@ class Migrations extends EventEmitter {
     return sum === '' ? sum : checksum(sum);
   }
 
+  _isLatest(migration) {
+    return _.last(this.discovered).name === migration.name;
+  }
+
   up({ batch, recorded }) {
     return this.applyBatch({ batch, recorded, direction: 'up' });
   }
@@ -90,7 +97,7 @@ class Migrations extends EventEmitter {
     this.emit('applyOne', migration);
     const known = _.find(recorded, (rm) => rm.name === migration.name);
 
-    if(known) {
+    if(!this._isLatest(migration) && known) {
       if(migration.checksum !== known.checksum) {
         throw new IntegrityError(
           `Migration "${migration.name}" has been tampered with, revert it to its previous state before migrating`);
