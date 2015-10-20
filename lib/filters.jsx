@@ -9,9 +9,9 @@ function update(recorded) {
   }
 }
 
-function rollback(last) {
+function rollback(recorded) {
   return function(m) {
-    return m.name === last.name;
+    return _.find(recorded, (rm) => m.name === rm.name && rm.applied === true);
   }
 }
 

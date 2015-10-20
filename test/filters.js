@@ -25,17 +25,20 @@ describe('Filters', function() {
   });
 
   describe('#rollback', function() {
-    it('should resolve rollback migration', function() {
+    it('should resolve migrations to rollback', function() {
       const discovered = [
         {name: 'foo'},
         {name: 'bar'},
         {name: 'baz'}
       ];
-      const last = {name: 'foo', applied: true};
+      const recorded = [
+        {name: 'foo', applied: true},
+        {name: 'bar', applied: false}
+      ];
       const expected = [
         {'name': 'foo'}
       ];
-      const filter = filters.rollback(last);
+      const filter = filters.rollback(recorded);
       assert.deepEqual(discovered.filter(filter), expected);
     });
   });
