@@ -1,6 +1,6 @@
 {
   "name": "sardine",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "A simple database agnostic migration tool",
   "main": "index.js",
   "scripts": {
