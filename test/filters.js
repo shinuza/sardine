@@ -19,8 +19,7 @@ describe('Filters', function() {
         {'name': 'baz'}
       ]
 
-      const filter = filters.update(recorded);
-      assert.deepEqual(discovered.filter(filter), expected);
+      assert.deepEqual(filters.update(discovered, recorded), expected);
     });
   });
 
@@ -38,8 +37,52 @@ describe('Filters', function() {
       const expected = [
         {'name': 'foo'}
       ];
-      const filter = filters.rollback(recorded);
-      assert.deepEqual(discovered.filter(filter), expected);
+
+      assert.deepEqual(filters.rollback(discovered, recorded), expected);
+    });
+  });
+
+  describe('#current', function() {
+    it('should return the current migration', function() {
+      const discovered = [
+        {name: 'foo'},
+        {name: 'bar'},
+        {name: 'baz'}
+      ];
+      const recorded = [
+        {name: 'foo', applied: true},
+        {name: 'bar', applied: true},
+      ];
+      const expected = {'name': 'bar'}
+
+      assert.deepEqual(filters.current(discovered, recorded), expected);
+    });
+
+    it('should return the first migration if none were applied', function() {
+      const discovered = [
+        {name: 'foo'},
+        {name: 'bar'},
+        {name: 'baz'}
+      ];
+      const recorded = [
+        {name: 'foo', applied: false},
+        {name: 'bar', applied: false},
+      ];
+      const expected = {'name': 'foo'}
+
+      assert.deepEqual(filters.current(discovered, recorded), expected);
+    });
+
+    it('should return the first migration if none were recorded', function() {
+      const discovered = [
+        {name: 'foo'},
+        {name: 'bar'},
+        {name: 'baz'}
+      ];
+      const recorded = [];
+      const expected = {'name': 'foo'}
+
+      assert.deepEqual(filters.current(discovered, recorded), expected);
     });
   });
 });
