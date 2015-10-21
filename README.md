@@ -81,7 +81,8 @@ Commands:
   create <suffix>                 Create a new migration directory
   step <migration> [suffixes...]  Create (a) new step(s) in <migration>. Fuzzy searchs migrations by name.
   update|up                       Migrate to the database to the latest version
-  rollback|down                   Revert last migration
+  rollback|down [options]         Revert latest migration. --all to revert all migrations
+  current|cur                     Show current migration
 
 Options:
 
