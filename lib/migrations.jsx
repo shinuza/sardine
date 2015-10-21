@@ -6,9 +6,10 @@ import Promise from 'bluebird';
 import co from 'co';
 import _ from 'lodash';
 
+import { rollback as rollbackFilter, update as updateFilter } from './filters';
 import { IntegrityError, TransactionError } from './errors';
 import { checksum } from './util';
-import { getDb, recordMigration, updateMigration } from './db';
+import { getDb, findMigrations, recordMigration, updateMigration, findLastAppliedMigrations } from './db';
 
 Promise.promisifyAll(fs);
 
@@ -74,6 +75,27 @@ class Migrations extends EventEmitter {
 
   _isLatest(migration) {
     return _.last(this.discovered).name === migration.name;
+  }
+
+  getUpdateBatch() {
+    return this
+      .discover()
+      .then((discovered) =>
+        findMigrations().then((recorded) => {
+          const batch = updateFilter(discovered, recorded);
+          return { recorded, batch };
+        }));
+  }
+
+  getRollbackBatch(limitToLast) {
+    return this
+      .discover()
+      .then((discovered) =>
+        findLastAppliedMigrations(limitToLast).then((recorded) => {
+          const batch = rollbackFilter(discovered, recorded);
+          batch.reverse();
+          return { recorded, batch };
+        }));
   }
 
   up({ batch, recorded }) {
