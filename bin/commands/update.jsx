@@ -3,7 +3,6 @@ import pgp from 'pg-promise';
 import db from '../../lib/db';
 import Migrations from '../../lib/migrations';
 import { UndefinedConfiguration } from '../../lib/errors';
-import { update as updateFilter } from '../../lib/filters';
 import { config } from '../../lib/config';
 import { showError, showInfo, showVerbose } from '../util';
 
@@ -30,17 +29,14 @@ function update(command) {
       });
 
       return migrations
-        .discover()
-        .then((discovered) =>
-          db.findMigrations().then((recorded) => {
-            const batch = updateFilter(discovered, recorded);
+        .getUpdateBatch()
+        .then(({ batch, recorded }) => {
+          if(!batch.length) {
+            return showInfo('Everything already up to date');
+          }
 
-            if(!batch.length) {
-              return showInfo('Everything already up to date');
-            }
-
-            return migrations.up({ batch, recorded });
-          }))
+          return migrations.up({ batch, recorded });
+        });
     })
     .catch((e) => {
       showError(e.stack || e.message);
