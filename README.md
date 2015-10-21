@@ -90,6 +90,20 @@ Options:
   -V, --verbose  Display verbose information
 ```
 
+# Code quality
+
+To run tests:
+
+```
+$ npm test
+```
+
+To lint the code:
+
+```
+$ npm run-script lint
+
+```
 # License
 
   MIT

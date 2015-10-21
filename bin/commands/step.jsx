@@ -12,7 +12,7 @@ import { showError, showInfo } from '../util';
 
 const writeFileAsync = Promise.promisify(writeFile);
 
-function step(migrationName, suffixes, command) {
+function step(migrationName, suffixes) {
   config()
     .then((conf) => {
       const { directory } = conf;
@@ -30,7 +30,7 @@ function step(migrationName, suffixes, command) {
         const target = _.find(discovered, (m) => _.contains(m.name, migrationName));
 
         if(!target) {
-          return showError(`Migration "${migration}" not found`);
+          return showError(`Migration "${migrationName}" not found`);
         }
 
         return Promise.all(suffixes.map((suffix, index) => {
@@ -49,7 +49,7 @@ function step(migrationName, suffixes, command) {
     .catch((e) => {
       showError(e.stack || e.message);
       process.exit(1);
-    })
+    });
 }
 
 export default step;
