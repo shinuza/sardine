@@ -1,13 +1,14 @@
+import colors from 'colors/safe';
 import pgp from 'pg-promise';
 
 import db from '../../lib/db';
 import Migrations from '../../lib/migrations';
 import { UndefinedConfiguration } from '../../lib/errors';
-import { update as updateFilter } from '../../lib/filters';
+import { current as currentFilter } from '../../lib/filters';
 import { config } from '../../lib/config';
-import { showError, showInfo, showVerbose } from '../util';
+import { showError, showInfo } from '../util';
 
-function update(command) {
+function current(command) {
   config()
     .then((conf) => {
       const { directory } = conf;
@@ -19,28 +20,23 @@ function update(command) {
     .then((dir) => {
       const migrations = new Migrations(dir);
 
-      migrations.on('applyOne', (m) => {
-        showInfo(`Applying "${m.name}"`);
-      });
-
-      migrations.on('step', (s) => {
-        if(command.parent.verbose) {
-          showVerbose(`Running "${s}"`);
-        }
-      });
-
       return migrations
         .discover()
         .then((discovered) =>
           db.findMigrations().then((recorded) => {
-            const batch = updateFilter(discovered, recorded);
-
-            if(!batch.length) {
-              return showInfo('Everything already up to date');
-            }
-
-            return migrations.up({ batch, recorded });
-          }))
+            const current = currentFilter(discovered, recorded);
+            const lines = discovered.map((m) => {
+              let start = ' ';
+              let out = ` ${m.name}`;
+              if(current.name === m.name) {
+                start = '*';
+                out = colors.green(out);
+              }
+              out = start + out;
+              return out;
+            });
+            console.log(lines.join('\n'));
+          }));
     })
     .catch((e) => {
       showError(e.stack || e.message);
@@ -49,4 +45,4 @@ function update(command) {
     .then(pgp.end);
 }
 
-export default update;
+export default current;

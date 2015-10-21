@@ -33,7 +33,7 @@ function rollback(command) {
         .discover()
         .then((discovered) =>
           db.findLastAppliedMigrations().then((recorded) => {
-            const batch = discovered.filter(rollbackFilter(recorded));
+            const batch = rollbackFilter(discovered, recorded);
 
             if(!batch.length) {
               return showInfo('Already at the earliest revision');

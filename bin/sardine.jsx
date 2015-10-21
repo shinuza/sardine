@@ -5,6 +5,7 @@ import create from './commands/create';
 import update from './commands/update';
 import rollback from './commands/rollback';
 import step from './commands/step';
+import current from './commands/current';
 
 program
   .version(require('../package.json').version)
@@ -36,6 +37,12 @@ program
   .alias('down')
   .description('Revert last migration')
   .action(rollback);
+
+program
+  .command('current')
+  .alias('cur')
+  .description('Show current migration')
+  .action(current);
 
 program
   .command('*')
