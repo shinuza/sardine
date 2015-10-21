@@ -31,11 +31,11 @@ function findMigrations() {
     db.query(`SELECT * FROM ${conf.tableName} ORDER BY name`));
 }
 
-function findLastAppliedMigrations(limit = 1) {
+function findLastAppliedMigrations(limit) {
   return getDb().then(({ db, conf }) => {
     let query = `SELECT * FROM ${conf.tableName} WHERE applied = true ORDER BY migration_time DESC`;
     if(limit) {
-      query = query + ` LIMIT ${limit}`;
+      query = query + ` LIMIT 1`;
     }
     return db.query(query);
   });

@@ -36,6 +36,7 @@ program
   .command('rollback')
   .alias('down')
   .description('Revert last migration')
+  .option('-a, --all', 'Revert every known migration')
   .action(rollback);
 
 program
