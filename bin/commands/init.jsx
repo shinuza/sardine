@@ -3,7 +3,7 @@ import { resolve } from 'path';
 
 import Promise from 'bluebird';
 
-import { showError, showInfo } from '../util';
+import { showError, showInfo, showWarning } from '../util';
 import { MissingConfiguration } from '../../lib/errors';
 import { SARDINE_CONFIG, config } from '../../lib/config';
 
@@ -23,7 +23,7 @@ const TEMPLATE = `module.exports = {
 
 export default function init() {
   config()
-    .then(() => showInfo('Already initialized'))
+    .then(() => showWarning('Already initialized'))
     .catch(MissingConfiguration, () => {
       const path = resolve(process.cwd(), SARDINE_CONFIG);
       return writeFileAsync(path, TEMPLATE)
