@@ -1,15 +1,19 @@
 import colors from 'colors/safe';
 
-function showError(message) {
-  console.error(colors.red('ERRO:') + ' ' + message);
+import pkg from '../package.json';
+
+function show(tag, mode, color) {
+  return function showWrapper(...args) {
+    const prefix = `${pkg.name} ` + colors[color](`${tag}:`);
+    args.unshift(prefix);
+    console[mode].apply(console, args);
+  };
 }
 
-function showInfo(message) {
-  console.info(colors.green('INFO:') + ' ' + message);
-}
+export const showError = show('ERRO', 'error', 'red');
 
-function showVerbose(message) {
-  console.info(colors.blue('VERB:') + ' ' + message);
-}
+export const showWarning = show('WARN', 'warn', 'yellow');
 
-export default { showError, showInfo, showVerbose };
+export const showInfo = show('INFO', 'info', 'green');
+
+export const showVerbose = show('VERB', 'log', 'blue');

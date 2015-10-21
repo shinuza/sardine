@@ -7,7 +7,7 @@ import { config } from './config';
 
 const readFileAsync = Promise.promisify(readFile);
 
-function createMigrationTable(db) {
+export function createMigrationTable(db) {
   const path = resolve(__dirname, 'sql', 'create_table.sql');
   // TODO: Memoize this call
   return readFileAsync(path)
@@ -17,7 +17,7 @@ function createMigrationTable(db) {
     });
 }
 
-function getDb() {
+export function getDb() {
   return config()
     .then((conf) => {
       const db = pgp().call(null, conf.connection);
@@ -26,12 +26,12 @@ function getDb() {
     });
 }
 
-function findMigrations() {
+export function findMigrations() {
   return getDb().then(({ db, conf }) =>
     db.query(`SELECT * FROM ${conf.tableName} ORDER BY name`));
 }
 
-function findLastAppliedMigrations(limit) {
+export function findLastAppliedMigrations(limit) {
   return getDb().then(({ db, conf }) => {
     let query = `SELECT * FROM ${conf.tableName} WHERE applied = true ORDER BY migration_time DESC`;
     if(limit) {
@@ -41,7 +41,7 @@ function findLastAppliedMigrations(limit) {
   });
 }
 
-function recordMigration(migration) {
+export function recordMigration(migration) {
   return getDb().then(({ db, conf }) =>
     db.query(`INSERT INTO ${conf.tableName} ` +
         '(name, applied, migration_time, checksum) VALUES (${name}, ${applied}, now(), ${checksum})', {
@@ -51,7 +51,7 @@ function recordMigration(migration) {
         }));
 }
 
-function updateMigration(migration, direction) {
+export function updateMigration(migration, direction) {
   return getDb().then(({ db, conf }) =>
     db.query(`UPDATE ${conf.tableName} ` +
         'SET applied = ${applied} WHERE name = ${name}', {
@@ -60,5 +60,3 @@ function updateMigration(migration, direction) {
           name: migration.name,
         }));
 }
-
-export default { getDb, findMigrations, findLastAppliedMigrations, recordMigration, updateMigration };
