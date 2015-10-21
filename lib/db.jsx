@@ -1,20 +1,20 @@
-import Promise from 'bluebird';
-import { readFile } from 'fs';
-import { resolve } from 'path';
 import pgp from 'pg-promise';
 
 import { config } from './config';
 
-const readFileAsync = Promise.promisify(readFile);
+const CREATE_MIGRATION_SCRIPT = `
+CREATE TABLE IF NOT EXISTS sardine_migrations
+(
+  id serial NOT NULL,
+  name character varying(255),
+  applied boolean,
+  migration_time timestamp without time zone,
+  checksum text,
+  CONSTRAINT sardine_migrations_pkey PRIMARY KEY (id)
+);`;
 
 export function createMigrationTable(db) {
-  const path = resolve(__dirname, 'sql', 'create_table.sql');
-  // TODO: Memoize this call
-  return readFileAsync(path)
-    .then((createScript) => db.query(createScript.toString()))
-    .catch((e) => {
-      throw e;
-    });
+  return db.query(CREATE_MIGRATION_SCRIPT);
 }
 
 export function getDb() {
