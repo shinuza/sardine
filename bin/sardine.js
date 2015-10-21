@@ -1,5 +1,3 @@
 #!/usr/bin/env node
 
-require('babel/register')(require('../package.json').babel);
-require('source-map-support').install();
-require('./sardine.jsx');
+require('../dist/bin/sardine');
