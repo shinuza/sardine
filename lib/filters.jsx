@@ -1,6 +1,6 @@
 import _ from 'lodash';
 
-function update(discovered, recorded) {
+export function update(discovered, recorded) {
   return discovered.filter((m) => {
     const unknown = !_.find(recorded, (rm) => m.name === rm.name);
     const notApplied = _.find(recorded, (rm) => m.name === rm.name && !rm.applied);
@@ -9,14 +9,12 @@ function update(discovered, recorded) {
   });
 }
 
-function rollback(discovered, recorded) {
+export function rollback(discovered, recorded) {
   return discovered.filter((m) =>
     _.find(recorded, (rm) => m.name === rm.name && rm.applied === true));
 }
 
-function current(discovered, recorded) {
+export function current(discovered, recorded) {
   const lastAppliedIndex = _.findLastIndex(recorded, (rm) => rm.applied === true);
   return discovered[lastAppliedIndex === -1 ? 0 : lastAppliedIndex];
 }
-
-export default { update, rollback, current };

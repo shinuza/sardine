@@ -6,14 +6,14 @@ import Promise from 'bluebird';
 import co from 'co';
 import _ from 'lodash';
 
-import { rollback as rollbackFilter, update as updateFilter } from './filters';
+import * as Db from './db';
+import * as filters from './filters';
 import { IntegrityError, TransactionError } from './errors';
 import { checksum } from './util';
-import { getDb, findMigrations, recordMigration, updateMigration, findLastAppliedMigrations } from './db';
 
 Promise.promisifyAll(fs);
 
-class Migrations extends EventEmitter {
+export default class Migrations extends EventEmitter {
   constructor(rootDir) {
     super();
     this.rootDir = rootDir;
@@ -81,8 +81,8 @@ class Migrations extends EventEmitter {
     return this
       .discover()
       .then((discovered) =>
-        findMigrations().then((recorded) => {
-          const batch = updateFilter(discovered, recorded);
+        Db.findMigrations().then((recorded) => {
+          const batch = filters.update(discovered, recorded);
           return { recorded, batch };
         }));
   }
@@ -91,8 +91,8 @@ class Migrations extends EventEmitter {
     return this
       .discover()
       .then((discovered) =>
-        findLastAppliedMigrations(limitToLast).then((recorded) => {
-          const batch = rollbackFilter(discovered, recorded);
+        Db.findLastAppliedMigrations(limitToLast).then((recorded) => {
+          const batch = filters.rollback(discovered, recorded);
           batch.reverse();
           return { recorded, batch };
         }));
@@ -126,7 +126,7 @@ class Migrations extends EventEmitter {
       }
     }
 
-    return getDb()
+    return Db.getDb()
       .then(({ db }) => {
         const self = this;
         return db.tx(function transaction() {
@@ -140,9 +140,9 @@ class Migrations extends EventEmitter {
         })
         .then(() => {
           if(known) {
-            return updateMigration(known, direction);
+            return Db.updateMigration(known, direction);
           }
-          return recordMigration(migration);
+          return Db.recordMigration(migration);
         })
         .catch((e) => {
           // db.tx calls catch with an array of succeeded/errored operations
@@ -157,19 +157,21 @@ class Migrations extends EventEmitter {
       });
   }
 
-  static checkIntegrity(up, down, name) {
-    _.zip(up, down).forEach((pairs) => {
-      const [upFile, downFile] = pairs;
-      const upFilename = upFile.filename;
-      const downFilename = downFile.filename;
-      if(!downFile) {
+  static checkIntegrity(ups, downs, name) {
+    _.zip(ups, downs).forEach(([up, down]) => {
+      const upFilename = up.filename;
+      const downFilename = down.filename;
+
+      if(!down) {
         throw new IntegrityError(
           `${name}/up/${upFilename} has no "down" counterpart, this migration cannot be applied.`);
       }
-      if(!upFile) {
+
+      if(!up) {
         throw new IntegrityError(
           `${name}/down/${downFilename} has no "up" counterpart, this migration cannot be applied.`);
       }
+
       if(downFilename !== upFilename) {
         throw new IntegrityError(
            `${downFilename} and ${upFilename} should have the same filename`);
@@ -177,5 +179,3 @@ class Migrations extends EventEmitter {
     });
   }
 }
-
-export default Migrations;

@@ -1,6 +1,6 @@
 import colors from 'colors/safe';
 
-import db from '../../lib/db';
+import { findMigrations } from '../../lib/db';
 import Migrations from '../../lib/migrations';
 import { current as currentFilter } from '../../lib/filters';
 
@@ -9,7 +9,7 @@ export default function current(config) {
   return (new Migrations(directory))
     .discover()
     .then((discovered) =>
-      db.findMigrations().then((recorded) => {
+      findMigrations().then((recorded) => {
         const cur = currentFilter(discovered, recorded);
         const lines = discovered.map((m) => {
           let start = ' ';
