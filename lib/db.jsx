@@ -7,6 +7,16 @@ import { config } from './config';
 
 const readFileAsync = Promise.promisify(readFile);
 
+function createMigrationTable(db) {
+  const path = resolve(__dirname, 'sql', 'create_table.sql');
+  // TODO: Memoize this call
+  return readFileAsync(path)
+    .then((createScript) => db.query(createScript.toString()))
+    .catch((e) => {
+      throw e;
+    });
+}
+
 function getDb() {
   return config()
     .then((conf) => {
@@ -14,16 +24,6 @@ function getDb() {
       return createMigrationTable(db)
         .then(() => ({ db, conf }));
     });
-}
-
-function createMigrationTable(db) {
-    const path = resolve(__dirname, 'sql', 'create_table.sql');
-    // TODO: Memoize this call
-    return readFileAsync(path)
-      .then((createScript) => db.query(createScript.toString()))
-      .catch((e) => {
-        throw e;
-      });
 }
 
 function findMigrations() {
@@ -43,20 +43,22 @@ function findLastAppliedMigrations(limit) {
 
 function recordMigration(migration) {
   return getDb().then(({ db, conf }) =>
-    db.query(`INSERT INTO ${conf.tableName} ` + '(name, applied, migration_time, checksum) VALUES (${name}, ${applied}, now(), ${checksum})', {
-      name: migration.name,
-      applied: true,
-      checksum: migration.checksum,
-    }));
+    db.query(`INSERT INTO ${conf.tableName} ` +
+        '(name, applied, migration_time, checksum) VALUES (${name}, ${applied}, now(), ${checksum})', {
+          name: migration.name,
+          applied: true,
+          checksum: migration.checksum,
+        }));
 }
 
 function updateMigration(migration, direction) {
   return getDb().then(({ db, conf }) =>
-    db.query(`UPDATE ${conf.tableName} ` + 'SET applied = ${applied} WHERE name = ${name}', {
-      table: conf.tableName,
-      applied: direction === 'up',
-      name: migration.name,
-    }));
+    db.query(`UPDATE ${conf.tableName} ` +
+        'SET applied = ${applied} WHERE name = ${name}', {
+          table: conf.tableName,
+          applied: direction === 'up',
+          name: migration.name,
+        }));
 }
 
 export default { getDb, findMigrations, findLastAppliedMigrations, recordMigration, updateMigration };

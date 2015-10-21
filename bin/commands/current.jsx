@@ -6,9 +6,9 @@ import Migrations from '../../lib/migrations';
 import { UndefinedConfiguration } from '../../lib/errors';
 import { current as currentFilter } from '../../lib/filters';
 import { config } from '../../lib/config';
-import { showError, showInfo } from '../util';
+import { showError } from '../util';
 
-function current(command) {
+function current() {
   config()
     .then((conf) => {
       const { directory } = conf;
@@ -24,11 +24,11 @@ function current(command) {
         .discover()
         .then((discovered) =>
           db.findMigrations().then((recorded) => {
-            const current = currentFilter(discovered, recorded);
+            const cur = currentFilter(discovered, recorded);
             const lines = discovered.map((m) => {
               let start = ' ';
               let out = ` ${m.name}`;
-              if(current.name === m.name) {
+              if(cur.name === m.name) {
                 start = '*';
                 out = colors.green(out);
               }

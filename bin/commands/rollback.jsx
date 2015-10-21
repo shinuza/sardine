@@ -1,6 +1,5 @@
 import pgp from 'pg-promise';
 
-import db from '../../lib/db';
 import Migrations from '../../lib/migrations';
 import { UndefinedConfiguration } from '../../lib/errors';
 import { config } from '../../lib/config';

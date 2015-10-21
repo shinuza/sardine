@@ -137,23 +137,24 @@ class Migrations extends EventEmitter {
             return this.query(file.contents.toString());
           });
           return this.batch(batch);
-      })
-      .then(() => {
-        if(known) {
-          return updateMigration(known, direction)
-        }
-        return recordMigration(migration);
-      })
-      .catch((e) => {
-        // db.tx calls catch with an array of succeeded/errored operations
-        if(Array.isArray(e)) {
-          const errorIndex = _.findIndex(e, (res) => !res.success);
-          const file = migration[direction].files[errorIndex];
-          e = new TransactionError(`In "${migration.name}/${direction}/${file.filename}": ${e[errorIndex].result.message}`);
-        }
-        throw e;
+        })
+        .then(() => {
+          if(known) {
+            return updateMigration(known, direction);
+          }
+          return recordMigration(migration);
+        })
+        .catch((e) => {
+          // db.tx calls catch with an array of succeeded/errored operations
+          if(Array.isArray(e)) {
+            const errorIndex = _.findIndex(e, (res) => !res.success);
+            const file = migration[direction].files[errorIndex];
+            e = new TransactionError(
+              `In "${migration.name}/${direction}/${file.filename}": ${e[errorIndex].result.message}`);
+          }
+          throw e;
+        });
       });
-    });
   }
 
   static checkIntegrity(up, down, name) {
