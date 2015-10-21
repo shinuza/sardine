@@ -1,11 +1,6 @@
 import program from 'commander';
 
-import init from './commands/init';
-import create from './commands/create';
-import update from './commands/update';
-import rollback from './commands/rollback';
-import step from './commands/step';
-import current from './commands/current';
+import * as commands from './commands';
 
 program
   .version(require('../package.json').version)
@@ -14,36 +9,36 @@ program
 program
   .command('init')
   .description('Initialize a new Sardine project')
-  .action(init);
+  .action(commands.init);
 
 program
   .command('create <suffix>')
   .description('Create a new migration directory')
-  .action(create);
+  .action(commands.create);
 
 program
   .command('step <migration> [suffixes...]')
   .description('Create (a) new step(s) in <migration>. Fuzzy searchs migrations by name.')
-  .action(step);
+  .action(commands.step);
 
 program
   .command('update')
   .alias('up')
   .description('Migrate to the database to the latest version')
-  .action(update);
+  .action(commands.update);
 
 program
   .command('rollback')
   .alias('down')
   .description('Revert last migration')
   .option('-a, --all', 'Revert every known migration')
-  .action(rollback);
+  .action(commands.rollback);
 
 program
   .command('current')
   .alias('cur')
   .description('Show current migration')
-  .action(current);
+  .action(commands.current);
 
 program
   .command('*')

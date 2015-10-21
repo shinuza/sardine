@@ -6,9 +6,9 @@ class MissingConfiguration extends Error {
 }
 
 class UndefinedConfiguration extends Error {
-  constructor(entry) {
+  constructor(message) {
     super();
-    this.message = `"terConfig.${entry}" is undefined`;
+    this.message = message;
   }
 }
 

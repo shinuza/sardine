@@ -21,7 +21,7 @@ const TEMPLATE = `module.exports = {
 };
 `;
 
-function init() {
+export default function init() {
   config()
     .then(() => showInfo('Already initialized'))
     .catch(MissingConfiguration, () => {
@@ -33,5 +33,3 @@ function init() {
       showError(e.stack);
     });
 }
-
-export default init;
