@@ -88,7 +88,7 @@ Options:
 
   -h, --help     output usage information
   -V, --version  output the version number
-  -V, --verbose  Display verbose information
+  -v, --verbose  Display verbose information
 ```
 
 # Code quality
