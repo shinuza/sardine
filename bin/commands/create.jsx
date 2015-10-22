@@ -3,23 +3,31 @@ import { resolve } from 'path';
 import mkdirp from 'mkdirp';
 
 import Migrations from '../../lib/migrations';
-import { snakeDate } from '../../lib/util';
-import { showError, showInfo } from '../util';
+import errors from '../../lib/errors';
+import { showInfo, showVerbose } from '../util';
 
-export default function create(config, suffix) {
-  const date = snakeDate(new Date());
-  const dir = `${date}_${suffix}`;
+export default function create(config, suffix, command) {
   const { directory } = config;
+  const migrations = new Migrations(directory);
 
-  return (new Migrations(directory))
-    .getUpdateBatch()
-    .then(({ batch }) => {
+  return Promise.all([
+    migrations.getUpdateBatch(),
+    migrations.create(new Date(), suffix),
+  ])
+    .then(([{ batch }, paths]) => {
       if(!batch.length) {
-        mkdirp.sync(resolve(directory, dir, 'up'));
-        mkdirp.sync(resolve(directory, dir, 'down'));
+        mkdirp.sync(resolve(directory, paths.up));
+        mkdirp.sync(resolve(directory, paths.down));
 
-        return showInfo(`Created ${resolve(directory, dir)}`);
+        showInfo(`Created ${paths.rootDir}`);
+        if(command.parent.verbose) {
+          showVerbose(`Created ${paths.up}`);
+          showVerbose(`Created ${paths.down}`);
+        }
+        return;
       }
-      showError('You can only edit one new migration at the time, run "sardine up" before creating a new one');
+
+      throw new errors.PendingMigrations(
+        'You can only edit one new migration at the time, run "sardine up" before creating a new one');
     });
 }

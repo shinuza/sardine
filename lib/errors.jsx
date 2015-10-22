@@ -33,10 +33,18 @@ class TransactionError extends Error {
   }
 }
 
+class PendingMigrations extends Error {
+  constructor(message) {
+    super();
+    this.message = message;
+  }
+}
+
 export default {
   IntegrityError,
   MissingConfiguration,
   MissingMigrationDirectory,
   TransactionError,
   UndefinedConfiguration,
+  PendingMigrations,
 };

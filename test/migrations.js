@@ -1,6 +1,7 @@
 var assert = require('assert');
 var Migrations = require('../lib/migrations.jsx');
 var errors = require('../lib/errors.jsx');
+const join = require('path').join;
 
 describe('Migrations', function() {
   describe('#isLastest()', function() {
@@ -31,6 +32,23 @@ describe('Migrations', function() {
       assert.throws(function() {
         Migrations.checkIntegrity([{filename: 1}, {filename: 2}], [{filename: 1}, {filename: 3}]);
       }, errors.IntegrityError);
+    });
+  });
+
+  describe('#create(suffix)', function() {
+    it('should return paths for a given date and suffix', function(done) {
+      const migrations = new Migrations('./fixtures/migrations');
+      const rootDir = '20150210_221003_foobar';
+      const expected = {
+        up: join(rootDir, 'up'),
+        down: join(rootDir, 'down'),
+        rootDir
+      };
+
+      migrations.create(new Date(2015, 1, 10, 22, 10, 3), 'foobar').then((paths) => {
+        assert.deepEqual(paths, expected);
+        done();
+      });
     });
   });
 });

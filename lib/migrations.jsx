@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { basename, resolve } from 'path';
+import { basename, resolve, join } from 'path';
 import EventEmitter from 'events';
 
 import Promise from 'bluebird';
@@ -8,6 +8,7 @@ import _ from 'lodash';
 
 import * as Db from './db';
 import * as filters from './filters';
+import { snakeDate } from './util';
 import { IntegrityError, TransactionError } from './errors';
 import { checksum } from './util';
 
@@ -75,6 +76,18 @@ export default class Migrations extends EventEmitter {
 
   _isLatest(migration) {
     return _.last(this.discovered).name === migration.name;
+  }
+
+  create(date, suffix) {
+    const snake = snakeDate(date);
+    const rootDir = `${snake}_${suffix}`;
+    const paths = {
+      rootDir,
+      up: join(rootDir, 'up'),
+      down: join(rootDir, 'down'),
+    };
+
+    return Promise.resolve(paths);
   }
 
   getUpdateBatch() {
