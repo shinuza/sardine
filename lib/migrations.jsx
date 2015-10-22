@@ -107,6 +107,15 @@ export default class Migrations extends EventEmitter {
     return paths;
   }
 
+  state(discovered, recorded) {
+    const current = filters.current(discovered, recorded);
+
+    return discovered.map((m) => ({
+      name: m.name,
+      current: m.name === current.name,
+    }));
+  }
+
   getUpdateBatch() {
     return this
       .discover()

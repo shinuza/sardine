@@ -74,4 +74,28 @@ describe('Migrations', function() {
       }, errors.MigrationNotFound);
     });
   });
+
+  describe('#state(discovered, recorded)', function() {
+    it('should return a list of discovered migrations indicating if they are the current one or not', function() {
+      const migrations = new Migrations();
+      const discovered = [
+        {name: '20150210_221003_foo'},
+        {name: '20150210_221203_bar'},
+        {name: '20150210_221003_buz'},
+        {name: '20150210_221203_fizzbuzz'},
+      ];
+      const recorded = [
+        {name: '20150210_221003_foo', applied: true},
+        {name: '20150210_221203_bar', applied: true},
+      ];
+
+      const state = migrations.state(discovered, recorded);
+      assert.deepEqual([
+        {name: '20150210_221003_foo', current: false},
+        {name: '20150210_221203_bar', current: true},
+        {name: '20150210_221003_buz', current: false},
+        {name: '20150210_221203_fizzbuzz', current: false},
+      ], state);
+    });
+  });
 });
