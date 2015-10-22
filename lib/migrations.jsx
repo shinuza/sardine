@@ -9,8 +9,8 @@ import _ from 'lodash';
 import * as Db from './db';
 import * as filters from './filters';
 import { snakeDate } from './util';
-import { IntegrityError, TransactionError } from './errors';
-import { checksum } from './util';
+import { IntegrityError, TransactionError, MigrationNotFound } from './errors';
+import { checksum, twoDigits } from './util';
 
 Promise.promisifyAll(fs);
 
@@ -81,13 +81,30 @@ export default class Migrations extends EventEmitter {
   create(date, suffix) {
     const snake = snakeDate(date);
     const rootDir = `${snake}_${suffix}`;
-    const paths = {
+
+    return {
       rootDir,
       up: join(rootDir, 'up'),
       down: join(rootDir, 'down'),
     };
+  }
 
-    return Promise.resolve(paths);
+  step(migrationName, suffixes) {
+    const paths = [];
+    const target = _.find(this.discovered, (m) => _.contains(m.name, migrationName));
+
+    if(!target) {
+      throw new MigrationNotFound(`Migration "${migrationName}" not found`);
+    }
+
+    ['up', 'down'].forEach((direction) => {
+      suffixes.forEach((suffix, index) => {
+        const filename = `${twoDigits(target.steps + index + 1)}_${suffix}.sql`;
+        paths.push(`${join(target.name, direction, filename)}`);
+      });
+    });
+
+    return paths;
   }
 
   getUpdateBatch() {

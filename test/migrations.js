@@ -36,7 +36,7 @@ describe('Migrations', function() {
   });
 
   describe('#create(suffix)', function() {
-    it('should return paths for a given date and suffix', function(done) {
+    it('should return paths for a given date and suffix', function() {
       const migrations = new Migrations('./fixtures/migrations');
       const rootDir = '20150210_221003_foobar';
       const expected = {
@@ -45,10 +45,33 @@ describe('Migrations', function() {
         rootDir
       };
 
-      migrations.create(new Date(2015, 1, 10, 22, 10, 3), 'foobar').then((paths) => {
-        assert.deepEqual(paths, expected);
-        done();
-      });
+      const paths = migrations.create(new Date(2015, 1, 10, 22, 10, 3), 'foobar');
+      assert.deepEqual(paths, expected);
+    });
+  });
+
+  describe('#step(migrationName, suffixes [, suffixes])', function() {
+    it('should return paths for a given suffix and list of names given', function() {
+      const migrations = new Migrations();
+      migrations.discovered = [{name: '20150210_221003_foobar', steps: 2}, {name: '20150210_221203_fizzbuzz', steps: 0}];
+      const expected = [
+        join('20150210_221003_foobar', 'up', '03_baz.sql'),
+        join('20150210_221003_foobar', 'up', '04_buz.sql'),
+        join('20150210_221003_foobar', 'down', '03_baz.sql'),
+        join('20150210_221003_foobar', 'down', '04_buz.sql')
+      ];
+
+      const paths = migrations.step('foobar', ['baz', 'buz']);
+      assert.deepEqual(paths, expected);
+    });
+
+    it('should return null if the fuzzy search fails', function() {
+      const migrations = new Migrations();
+      migrations.discovered = [{name: '20150210_221003_foobar'}, {name: '20150210_221203_fizzbuzz'}];
+
+      assert.throws(function() {
+        migrations.step('notfound', ['baz', 'buz']);
+      }, errors.MigrationNotFound);
     });
   });
 });

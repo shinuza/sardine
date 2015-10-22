@@ -40,6 +40,13 @@ class PendingMigrations extends Error {
   }
 }
 
+class MigrationNotFound extends Error {
+  constructor(message) {
+    super();
+    this.message = message;
+  }
+}
+
 export default {
   IntegrityError,
   MissingConfiguration,
@@ -47,4 +54,5 @@ export default {
   TransactionError,
   UndefinedConfiguration,
   PendingMigrations,
+  MigrationNotFound,
 };
