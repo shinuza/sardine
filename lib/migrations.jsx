@@ -1,5 +1,5 @@
 import fs from 'fs';
-import { basename, resolve } from 'path';
+import { basename, resolve, join } from 'path';
 import EventEmitter from 'events';
 
 import Promise from 'bluebird';
@@ -8,8 +8,9 @@ import _ from 'lodash';
 
 import * as Db from './db';
 import * as filters from './filters';
-import { IntegrityError, TransactionError } from './errors';
-import { checksum } from './util';
+import { snakeDate } from './util';
+import { IntegrityError, TransactionError, MigrationNotFound } from './errors';
+import { checksum, twoDigits } from './util';
 
 Promise.promisifyAll(fs);
 
@@ -75,6 +76,44 @@ export default class Migrations extends EventEmitter {
 
   _isLatest(migration) {
     return _.last(this.discovered).name === migration.name;
+  }
+
+  create(date, suffix) {
+    const snake = snakeDate(date);
+    const rootDir = `${snake}_${suffix}`;
+
+    return {
+      rootDir,
+      up: join(rootDir, 'up'),
+      down: join(rootDir, 'down'),
+    };
+  }
+
+  step(migrationName, suffixes) {
+    const paths = [];
+    const target = _.find(this.discovered, (m) => _.contains(m.name, migrationName));
+
+    if(!target) {
+      throw new MigrationNotFound(`Migration "${migrationName}" not found`);
+    }
+
+    ['up', 'down'].forEach((direction) => {
+      suffixes.forEach((suffix, index) => {
+        const filename = `${twoDigits(target.steps + index + 1)}_${suffix}.sql`;
+        paths.push(`${join(target.name, direction, filename)}`);
+      });
+    });
+
+    return paths;
+  }
+
+  state(discovered, recorded) {
+    const current = filters.current(discovered, recorded);
+
+    return discovered.map((m) => ({
+      name: m.name,
+      current: m.name === current.name,
+    }));
   }
 
   getUpdateBatch() {

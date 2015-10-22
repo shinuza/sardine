@@ -30,17 +30,17 @@ Create a new step
 $ sardine step v1 foo
 ```
 
-This creates `./up/00_foo.sql` and `./down/00_foo.sql`. Edit them with your sql.
+This creates `./up/01_foo.sql` and `./down/01_foo.sql`. Edit them with your sql.
 
 ```sql
--- 20151015_105530_v1/up/00_foo.sql
+-- 20151015_105530_v1/up/01_foo.sql
 CREATE TABLE foo1
 (
   id serial NOT NULL,
   CONSTRAINT foo1_pkey PRIMARY KEY (id)
 );
 
--- 20151015_105530_v1/down/00_foo.sql
+-- 20151015_105530_v1/down/01_foo.sql
 DROP TABLE foo1;
 ```
 

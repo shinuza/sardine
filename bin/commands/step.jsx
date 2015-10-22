@@ -2,35 +2,26 @@ import { writeFile } from 'fs';
 import { resolve } from 'path';
 
 import Promise from 'bluebird';
-import _ from 'lodash';
 
 import Migrations from '../../lib/migrations';
-import { twoDigits } from '../../lib/util';
-import { showError, showInfo } from '../util';
+import { showInfo } from '../util';
 
 const writeFileAsync = Promise.promisify(writeFile);
 
 export default function step(config, migrationName, suffixes) {
   const { directory } = config;
-  return (new Migrations(directory))
+  const migrations = new Migrations(directory);
+
+  return migrations
     .discover()
-    .then((discovered) => {
-      const target = _.find(discovered, (m) => _.contains(m.name, migrationName));
+    .then(() => {
+      const paths = migrations.step(migrationName, suffixes);
 
-      if(!target) {
-        return showError(`Migration "${migrationName}" not found`);
-      }
-
-      return Promise.all(suffixes.map((suffix, index) => {
-        const resolveMig = resolve.bind(null, directory, target.name);
-        return Promise.all(
-          ['up', 'down'].map((direction) => {
-            const path = resolveMig(direction, `${twoDigits(target.steps + index + 1)}_${suffix}.sql`);
-            showInfo(`Created ${path}`);
-            return writeFileAsync(path, '');
-          })
-        );
-      }));
+      return Promise.all(
+        paths.map((path) => {
+          showInfo(`Created ${path}`);
+          return writeFileAsync(resolve(directory, path), '');
+        }));
     });
 }
 
