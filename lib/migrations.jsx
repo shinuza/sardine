@@ -8,7 +8,7 @@ import _ from 'lodash';
 
 import * as Db from './db';
 import * as filters from './filters';
-import { snakeDate } from './util';
+import { snake } from './date';
 import { IntegrityError, TransactionError, MigrationNotFound } from './errors';
 import { checksum, twoDigits } from './util';
 
@@ -79,8 +79,8 @@ export default class Migrations extends EventEmitter {
   }
 
   create(date, suffix) {
-    const snake = snakeDate(date);
-    const rootDir = `${snake}_${suffix}`;
+    const snakeDate = snake(date);
+    const rootDir = `${snakeDate}_${suffix}`;
 
     return {
       rootDir,
