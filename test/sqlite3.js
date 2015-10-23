@@ -9,7 +9,8 @@ describe('SQLite3', function() {
       const db = new SQLite3({'path': ':memory:'});
       const values = { name: 'foobar', 'applied': false, 'migration_time': new Date(2015, 0, 1, 1, 2, 3, 500), 'checksum': 'checksum'};
 
-      helpers.insert(db, values)
+      db.connect()
+      .then(() => helpers.insert(db, values))
       .then(() => helpers.select(db))
       .then((res) => {
         assert.deepEqual(res, [{
@@ -19,8 +20,10 @@ describe('SQLite3', function() {
           migration_time: '2015-01-01 01:02:03.500',
           checksum: 'checksum'
         }]);
+        db.close();
         done();
-      }).catch(done);
+      })
+      .catch(done);
     });
   });
 
@@ -36,10 +39,12 @@ describe('SQLite3', function() {
         { name: 'foobar', 'applied': false, 'migration_time': new Date(2015, 0, 1, 1, 2, 3, 502), 'checksum': 'checksum'}
       ].map(wrapInsert);
 
-      db.transaction(queries)
+      db.connect()
+      .then(() => db.transaction(queries))
       .then(() => helpers.count(db))
       .then((count) => {
         assert.equal(count, 3);
+        db.close();
         done();
       })
       .catch(done);
@@ -56,14 +61,15 @@ describe('SQLite3', function() {
         { name: 'foobar', 'applied': false, 'migration_time': new Date(2015, 0, 1, 1, 2, 3, 502), 'checksum': 'checksum'}
       ].map(wrapInsert);
 
-      db.transaction(queries)
+      db.connect()
+      .then(() => db.transaction(queries))
       .catch((e) => assert.notEqual(e, undefined))
       .then(() => helpers.count(db))
       .then((count) => {
         assert.equal(count, 0);
+        db.close();
         done();
-      })
-      ;
+      });
     });
   });
 
@@ -71,7 +77,8 @@ describe('SQLite3', function() {
     it('should not allow queries when #close has been called', function(done) {
       const db = new SQLite3({'path': ':memory:'});
 
-      db.query('SELECT 1;')
+      db.connect()
+        .then(() => db.query('SELECT 1;'))
         .then(() => db.close())
         .then(() => db.query('SELECT 1;'))
         .then(() => done(new Error('Allowed a query after close')))

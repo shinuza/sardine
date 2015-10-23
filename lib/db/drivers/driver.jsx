@@ -1,6 +1,10 @@
+import co from 'co';
 import { MissingDependency } from '../../errors';
 
 export default class Driver {
+  constructor(configuration) {
+    this.configuration = configuration;
+  }
 
   getName() {
     throw new ReferenceError('Not implemented!');
@@ -20,9 +24,38 @@ export default class Driver {
     }
   }
 
-  query() {}
+  query(sql, params = []) {
+    return this.client.queryAsync(this.getCreateStatement())
+      .then(() => this.client.queryAsync(sql, params));
+  }
 
-  transaction() {}
+  transaction(queries) {
+    return this.client.queryAsync('BEGIN')
+    .then(() =>
+      co(function* transactionQuery() {
+        for(const query of queries) {
+          yield query();
+        }
+        return Promise.resolve(true);
+      })
+    )
+    .then(() => this.client.queryAsync('COMMIT'))
+    .catch((e) => {
+      return this.client.queryAsync('ROLLBACK').then(() => {
+        throw e;
+      });
+    });
+  }
 
-  close() {}
+  close() {
+    return this.client.closeAsync();
+  }
+
+  getName() {
+    return this.NAME;
+  }
+
+  getCreateStatement() {
+    return this.CREATE_STATEMENT;
+  }
 }
