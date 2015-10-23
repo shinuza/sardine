@@ -23,4 +23,6 @@ export default class Driver {
   query() {}
 
   transaction() {}
+
+  close() {}
 }

@@ -1,8 +1,9 @@
+import co from 'co';
 import Promise from 'bluebird';
 
 import Driver from './driver';
 
-export default class Sqlite3Driver extends Driver {
+export default class SQLite3Driver extends Driver {
 
   NAME = 'sqlite3';
 
@@ -21,6 +22,7 @@ export default class Sqlite3Driver extends Driver {
     this.db = new sqlite3.Database(configuration.path);
     this.db.runAsync = Promise.promisify(this.db.run);
     this.db.queryAsync = Promise.promisify(this.db.all);
+    this.db.closeAsync = Promise.promisify(this.db.close);
   }
 
   query(sql, params = []) {
@@ -33,7 +35,27 @@ export default class Sqlite3Driver extends Driver {
       });
   }
 
-  transaction() {}
+  transaction(queries) {
+    return this.db.runAsync('BEGIN')
+    .then(() =>
+      co(function* transactionQuery() {
+        for(const query of queries) {
+          yield query();
+        }
+        return Promise.resolve(true);
+      })
+    )
+    .then(() => this.db.runAsync('COMMIT'))
+    .catch((e) => {
+      return this.db.runAsync('ROLLBACK').then(() => {
+        throw e;
+      });
+    });
+  }
+
+  close() {
+    return this.db.closeAsync();
+  }
 
   getName() {
     return this.NAME;

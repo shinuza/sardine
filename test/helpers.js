@@ -14,3 +14,8 @@ export function insert(db, values) {
 export function select(db) {
   return db.query('SELECT * FROM sardine_migrations');
 }
+
+export function count(db) {
+  return db.query('SELECT COUNT(*) AS count FROM sardine_migrations')
+    .then(([res]) => res.count);
+}
