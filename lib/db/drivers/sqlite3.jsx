@@ -7,7 +7,7 @@ export default class SQLite3Driver extends Driver {
   NAME = 'sqlite3';
 
   CREATE_STATEMENT =
-    `CREATE  TABLE  IF NOT EXISTS "sardine_migrations" (
+    `CREATE  TABLE  IF NOT EXISTS "$$tableName$$" (
       "id" INTEGER PRIMARY KEY AUTOINCREMENT,
       "name" VARCHAR NOT NULL,
       "applied" BOOL NOT NULL,
@@ -20,10 +20,11 @@ export default class SQLite3Driver extends Driver {
   }
 
   connect() {
+    const self = this;
     const sqlite3 = this.getModule();
 
     return new Promise(function connectSQLite3(resolve, reject) {
-      const client = this.client = new sqlite3.Database(this.configuration.path);
+      const client = self.client = new sqlite3.Database(self.configuration.connection.path);
       client.on('open', function onSQLite3Connect(err) {
         if(err) {
           return reject(err);
@@ -31,8 +32,9 @@ export default class SQLite3Driver extends Driver {
         client.queryAsync = Promise.promisify(client.all);
         client.closeAsync = Promise.promisify(client.close);
 
+        self.opened = true;
         resolve(client);
+    });
       });
-    }.bind(this));
   }
 }

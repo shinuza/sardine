@@ -3,66 +3,87 @@ import { paddedDateList } from '../date';
 const types = {};
 
 class BaseType {
-  constructor(value) {
-    this._value = value;
+  constructor(driver, value) {
+    this.driver = driver;
+    this.value = value;
   }
 
-  value(driver) {
-    return this[driver](this._value);
+  toSQL() {
+    const fn = this[this.driver] || this.default;
+    return fn.call(this).toSQL(this.value);
   }
 
-  sqlite3() {
-    return this.default();
-  }
-
-  pg() {
-    return this.default();
-  }
-
-  mysql() {
-    return this.default();
+  toJS(value) {
+    const fn = this[this.driver] || this.default;
+    return fn.call(this).toJS(this.value);
   }
 }
 
 types.Boolean = class Boolean extends BaseType {
-  default() {
-    return this._value === true ? 'true' : 'false';
+  default(value) {
+    const self = this;
+    return {
+      toSQL: () => {
+        return self.value;
+      },
+
+      toJS: () => {
+        return self.value;
+      }
+    }
   }
 
-  mysql() {
-    return this._value + 0;
+  mysql(value) {
+    const self = this;
+    return {
+      toSQL: () => {
+        return self.value + 0;
+      },
+
+      toJS: () => {
+        return !!self.value;
+      }
+    }
   }
 };
 
 types.String = class String extends BaseType {
   default() {
-    return this._value;
+    const self = this;
+    return {
+      toSQL: () => {
+        return self.value.toString();
+      },
+
+      toJS: () => {
+        return self.value;
+      }
+    }
   }
 };
 
 types.DateTime = class DateTime extends BaseType {
   default() {
-    const [year, month, day, hours, minutes, seconds, ms] = paddedDateList(this._value);
-    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.${ms}`;
+    const self = this;
+    return {
+      toSQL: () => {
+        const [year, month, day, hours, minutes, seconds, ms] = paddedDateList(self.value);
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.${ms}`;
+      },
+
+      toJS: () => {
+        return self.value;
+      }
+    }
   }
 };
 
-types.TypeWrapper = class Type {
+export default class Wrapper {
   constructor(driver) {
     this.driver = driver;
-  }
 
-  DateTime(value) {
-    return new types.DateTime(value).value(this.driver);
-  }
-
-  String(value) {
-    return new types.String(value).value(this.driver);
-  }
-
-  Boolean(value) {
-    return new types.Boolean(value).value(this.driver);
+    this.DateTime = (value) => new types.DateTime(this.driver, value);
+    this.String = (value) => new types.String(this.driver, value);
+    this.Boolean = (value) => new types.Boolean(this.driver, value);
   }
 };
-
-export default types;

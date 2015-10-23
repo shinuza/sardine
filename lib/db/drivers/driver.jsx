@@ -25,11 +25,22 @@ export default class Driver {
   }
 
   query(sql, params = []) {
+    if(!this.opened) {
+      return Promise.reject(new ReferenceError(`${this.constructor.name}.connect() must be called before doing any query`));
+    }
+
+    sql = this.sql(sql);
+
     return this.client.queryAsync(this.getCreateStatement())
-      .then(() => this.client.queryAsync(sql, params));
+      .then(() => this.client.queryAsync(sql, params))
+      .then((res) => this.result(res));
   }
 
   transaction(queries) {
+    if(!this.opened) {
+      return Promise.reject(new ReferenceError(`${this.constructor.name}.connect() must be called before doing any transaction`));
+    }
+
     return this.client.queryAsync('BEGIN')
     .then(() =>
       co(function* transactionQuery() {
@@ -48,7 +59,23 @@ export default class Driver {
   }
 
   close() {
-    return this.client.closeAsync();
+    if(!this.opened) {
+      return Promise.reject(new ReferenceError(`Can't close the database, it's not open`));
+    }
+    return this.client
+      .closeAsync()
+      .then(() => {
+        this.opened = false;
+      });
+  }
+
+
+  sql(sql) {
+    return sql;
+  }
+
+  result(res) {
+    return res;
   }
 
   getName() {
@@ -56,6 +83,6 @@ export default class Driver {
   }
 
   getCreateStatement() {
-    return this.CREATE_STATEMENT;
+    return this.CREATE_STATEMENT.replace('$$tableName$$', this.configuration.tableName);
   }
 }
