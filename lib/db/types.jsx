@@ -1,7 +1,5 @@
 import { paddedDateList } from '../date';
 
-const types = {};
-
 class BaseType {
   constructor(driver, value) {
     this.driver = driver;
@@ -19,7 +17,7 @@ class BaseType {
   }
 }
 
-types.Boolean = class Boolean extends BaseType {
+export class BooleanType extends BaseType {
   default(value) {
     const self = this;
     return {
@@ -47,11 +45,14 @@ types.Boolean = class Boolean extends BaseType {
   }
 };
 
-types.String = class String extends BaseType {
+export class StringType extends BaseType {
   default() {
     const self = this;
     return {
       toSQL: () => {
+        if(self.value === null) {
+          return null;
+        }
         return self.value.toString();
       },
 
@@ -62,7 +63,7 @@ types.String = class String extends BaseType {
   }
 };
 
-types.DateTime = class DateTime extends BaseType {
+export class DateTimeType extends BaseType {
   default() {
     const self = this;
     return {
@@ -76,14 +77,15 @@ types.DateTime = class DateTime extends BaseType {
       }
     }
   }
-};
+}
 
-export default class Wrapper {
+
+export class TypeWrapper {
   constructor(driver) {
     this.driver = driver;
 
-    this.DateTime = (value) => new types.DateTime(this.driver, value);
-    this.String = (value) => new types.String(this.driver, value);
-    this.Boolean = (value) => new types.Boolean(this.driver, value);
+    this.DateTime = (value) => new DateTimeType(this.driver, value);
+    this.String = (value) => new StringType(this.driver, value);
+    this.Boolean = (value) => new BooleanType(this.driver, value);
   }
-};
+}

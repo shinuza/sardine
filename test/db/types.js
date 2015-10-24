@@ -1,5 +1,5 @@
 var assert = require('assert');
-var TypeWrapper = require('../../lib/db/types.jsx');
+var TypeWrapper = require('../../lib/db/types.jsx').TypeWrapper;
 
 describe('types', function() {
     const date = new Date(2015, 2, 4, 20, 12, 23, 200);
