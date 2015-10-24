@@ -32,7 +32,7 @@ export default class SQLite3Driver extends Driver {
         client.queryAsync = Promise.promisify(client.all);
         client.closeAsync = Promise.promisify(client.close);
 
-        self.opened = true;
+        self.connected(true);
         resolve(client);
     });
       });

@@ -25,7 +25,7 @@ describe('SQLite3', function() {
     });
 
     afterEach(function(done) {
-      if(db.opened) {
+      if(db.connected()) {
         return helpers.drop(db)
           .then(() => {
             done();

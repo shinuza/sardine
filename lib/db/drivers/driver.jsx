@@ -2,6 +2,11 @@ import co from 'co';
 import { MissingDependency } from '../../errors';
 
 export default class Driver {
+
+  _connected = null;
+
+  client = null;
+
   constructor(configuration) {
     this.configuration = configuration;
   }
@@ -25,7 +30,7 @@ export default class Driver {
   }
 
   query(sql, params = []) {
-    if(!this.opened) {
+    if(!this.connected()) {
       return Promise.reject(new ReferenceError(`${this.constructor.name}.connect() must be called before doing any query`));
     }
 
@@ -37,7 +42,7 @@ export default class Driver {
   }
 
   transaction(queries) {
-    if(!this.opened) {
+    if(!this.connected()) {
       return Promise.reject(new ReferenceError(`${this.constructor.name}.connect() must be called before doing any transaction`));
     }
 
@@ -59,16 +64,22 @@ export default class Driver {
   }
 
   close() {
-    if(!this.opened) {
+    if(!this.connected()) {
       return Promise.reject(new ReferenceError(`Can't close the database, it's not open`));
     }
     return this.client
       .closeAsync()
       .then(() => {
-        this.opened = false;
+        this.connected = false;
       });
   }
 
+  connected(val) {
+    if(val) {
+      this._connected = val;
+    }
+    return this._connected;
+  }
 
   sql(sql) {
     return sql;

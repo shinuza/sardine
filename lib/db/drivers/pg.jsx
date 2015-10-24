@@ -32,7 +32,7 @@ export default class Pg extends Driver {
         if(err) {
           return reject(err);
         }
-        self.opened = true;
+        self.connected(true);
         resolve(client);
       });
     });
