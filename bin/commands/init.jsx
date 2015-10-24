@@ -10,8 +10,9 @@ import { SARDINE_CONFIG, config } from '../../lib/config';
 const writeFileAsync = Promise.promisify(writeFile);
 
 const TEMPLATE = `module.exports = {
-  directory: 'migrations',
-  tableName: 'sardine_migrations',
+  directory:  'migrations',
+  tableName:  'sardine_migrations',
+  driver:     'pg',
   connection: {
     host:     'localhost',
     user:     'postgres',
