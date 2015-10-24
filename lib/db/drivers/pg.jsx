@@ -9,10 +9,10 @@ export default class Pg extends Driver {
   CREATE_STATEMENT =
     `CREATE TABLE IF NOT EXISTS $$tableName$$ (
       id serial PRIMARY KEY,
-      name character varying(255),
-      applied boolean,
-      migration_time timestamp without time zone,
-      checksum text
+      name character varying(255) not null,
+      applied boolean not null,
+      migration_time timestamp without time zone not null,
+      checksum text not null
     );`;
 
   constructor(configuration) {
