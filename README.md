@@ -2,7 +2,7 @@
 
   A simple database agnostic migration tool.
 
-  *Only postgres is supported right now (Why would you use anything else anyway?)*
+  *Only postgres is supported right now, support for [mysql, and sqlite3 in the works](https://github.com/shinuza/sardine/tree/feature-database-agnostic)*
 
 ## Installation
 
