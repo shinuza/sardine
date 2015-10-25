@@ -15,11 +15,11 @@ function command(fn, configKeys) {
   };
 }
 
+export const init = () => require('./init')(config(), process.cwd());
+
 export const create = command(require('./create'), ['directory']);
 
 export const current = command(require('./current'), ['directory']);
-
-export const init = require('./init');
 
 export const rollback = command(require('./rollback'), ['directory']);
 

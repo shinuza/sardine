@@ -9,15 +9,39 @@ import _ from 'lodash';
 import * as Db from './db';
 import * as filters from './filters';
 import { snake } from './date';
-import { IntegrityError, TransactionError, MigrationNotFound } from './errors';
+import { SARDINE_CONFIG } from './config';
+import { IntegrityError, TransactionError, MigrationNotFound, MissingConfiguration } from './errors';
 import { checksum, twoDigits } from './util';
 
 Promise.promisifyAll(fs);
+
+const CONFIG_TEMPLATE = `module.exports = {
+  directory:  'migrations',
+  tableName:  'sardine_migrations',
+  driver:     'pg',
+  connection: {
+    host:     'localhost',
+    user:     'postgres',
+    password: 'postgres',
+    database: 'postgres'
+  }
+};
+`;
 
 export default class Migrations extends EventEmitter {
   constructor(rootDir) {
     super();
     this.rootDir = rootDir;
+  }
+
+  init(config, cwd) {
+    return config
+      .then(() => this.emit('init:noop'))
+      .catch(MissingConfiguration, () => {
+        const path = resolve(cwd, SARDINE_CONFIG);
+        return fs.writeFileAsync(path, CONFIG_TEMPLATE)
+          .then(() => this.emit('init:success'));
+      });
   }
 
   discover() {

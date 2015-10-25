@@ -1,7 +1,13 @@
 var assert = require('assert');
+var fs = require('fs');
+var path = require('path');
+
+var Promise = require('bluebird');
+
 var Migrations = require('../lib/migrations.jsx');
 var errors = require('../lib/errors.jsx');
-const join = require('path').join;
+var SARDINE_CONFIG = require('../lib/config').SARDINE_CONFIG;
+var SANDBOX = path.resolve(__dirname, 'sandbox');
 
 describe('Migrations', function() {
   describe('#isLastest()', function() {
@@ -40,8 +46,8 @@ describe('Migrations', function() {
       const migrations = new Migrations('./fixtures/migrations');
       const rootDir = '20150210_221003_foobar';
       const expected = {
-        up: join(rootDir, 'up'),
-        down: join(rootDir, 'down'),
+        up: path.join(rootDir, 'up'),
+        down: path.join(rootDir, 'down'),
         rootDir
       };
 
@@ -50,15 +56,47 @@ describe('Migrations', function() {
     });
   });
 
+  describe('init(#config, path)', function() {
+    after(function(done) {
+      const f = path.resolve(SANDBOX, SARDINE_CONFIG);
+      fs.unlink(f, done);
+    });
+
+    it('should create the sardineConfig file when it does not exist', function(done) {
+      const migrations = new Migrations();
+      const p = Promise.reject(new errors.MissingConfiguration('Yup, it failed'));
+
+      migrations.on('init:success', () => {
+        assert(require(path.resolve(SANDBOX, SARDINE_CONFIG)) !== undefined);
+        done();
+      });
+
+      migrations.init(p, SANDBOX).catch(done);
+    });
+
+    it('should not create the sandineConfig file when it already exists', function(done) {
+      const migrations = new Migrations();
+      const p = Promise.resolve();
+
+      migrations.on('init:success', () => {
+        assert(false, 'Success was called');
+        done();
+      });
+      migrations.on('init:noop', done);
+
+      migrations.init(p, SANDBOX).catch(done);
+    });
+  });
+
   describe('#step(migrationName, suffixes [, suffixes])', function() {
     it('should return paths for a given suffix and list of names given', function() {
       const migrations = new Migrations();
       migrations.discovered = [{name: '20150210_221003_foobar', steps: 2}, {name: '20150210_221203_fizzbuzz', steps: 0}];
       const expected = [
-        join('20150210_221003_foobar', 'up', '03_baz.sql'),
-        join('20150210_221003_foobar', 'up', '04_buz.sql'),
-        join('20150210_221003_foobar', 'down', '03_baz.sql'),
-        join('20150210_221003_foobar', 'down', '04_buz.sql')
+        path.join('20150210_221003_foobar', 'up', '03_baz.sql'),
+        path.join('20150210_221003_foobar', 'up', '04_buz.sql'),
+        path.join('20150210_221003_foobar', 'down', '03_baz.sql'),
+        path.join('20150210_221003_foobar', 'down', '04_buz.sql')
       ];
 
       const paths = migrations.step('foobar', ['baz', 'buz']);
