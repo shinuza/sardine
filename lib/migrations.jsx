@@ -10,7 +10,7 @@ import * as Db from './db';
 import * as filters from './filters';
 import { snake } from './date';
 import { SARDINE_CONFIG } from './config';
-import { IntegrityError, TransactionError, MigrationNotFound, MissingConfiguration } from './errors';
+import { IntegrityError, EmptyBatchError, TransactionError, MigrationNotFound, MissingConfiguration } from './errors';
 import { checksum, twoDigits } from './util';
 
 Promise.promisifyAll(fs);
@@ -170,6 +170,9 @@ export default class Migrations extends EventEmitter {
   }
 
   applyBatch({ batch, recorded, direction }) {
+    if(batch.length === 0) {
+      throw new EmptyBatchError();
+    }
     const self = this;
     return co(function* apply() {
       for (const migration of batch) {

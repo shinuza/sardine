@@ -1,4 +1,5 @@
 import Migrations from '../../lib/migrations';
+import { EmptyBatchError } from '../../lib/errors';
 import { showInfo, showVerbose } from '../util';
 
 export default function rollback(config, command) {
@@ -17,11 +18,6 @@ export default function rollback(config, command) {
 
   return migrations
     .getRollbackBatch(!command.all)
-    .then(({ batch, recorded }) => {
-      if(!batch.length) {
-        return showInfo('Already at the earliest revision');
-      }
-
-      return migrations.down({ batch, recorded });
-    });
+    .then(migrations.down.bind(migrations))
+    .catch(EmptyBatchError, () => showInfo('Already at the earliest revision'));
 }

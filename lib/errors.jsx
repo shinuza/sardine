@@ -54,6 +54,13 @@ class MigrationNotFound extends Error {
   }
 }
 
+class EmptyBatchError extends Error {
+  constructor(message) {
+    super();
+    this.message = message;
+  }
+}
+
 export default {
   IntegrityError,
   MigrationNotFound,
@@ -63,4 +70,5 @@ export default {
   PendingMigrations,
   TransactionError,
   UndefinedConfiguration,
+  EmptyBatchError,
 };
