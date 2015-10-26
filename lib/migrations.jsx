@@ -171,7 +171,7 @@ export default class Migrations extends EventEmitter {
 
   applyBatch({ batch, recorded, direction }) {
     if(batch.length === 0) {
-      throw new EmptyBatchError();
+      throw new EmptyBatchError('Cannot apply empty batch');
     }
     const self = this;
     return co(function* apply() {
