@@ -11,14 +11,14 @@ class BaseType {
     return fn.call(this).toSQL(this.value);
   }
 
-  toJS(value) {
+  toJS() {
     const fn = this[this.driver] || this.default;
     return fn.call(this).toJS(this.value);
   }
 }
 
 export class BooleanType extends BaseType {
-  default(value) {
+  default() {
     const self = this;
     return {
       toSQL: () => {
@@ -27,11 +27,11 @@ export class BooleanType extends BaseType {
 
       toJS: () => {
         return self.value;
-      }
-    }
+      },
+    };
   }
 
-  mysql(value) {
+  mysql() {
     const self = this;
     return {
       toSQL: () => {
@@ -40,10 +40,10 @@ export class BooleanType extends BaseType {
 
       toJS: () => {
         return !!self.value;
-      }
-    }
+      },
+    };
   }
-};
+}
 
 export class StringType extends BaseType {
   default() {
@@ -58,10 +58,10 @@ export class StringType extends BaseType {
 
       toJS: () => {
         return self.value;
-      }
-    }
+      },
+    };
   }
-};
+}
 
 export class DateTimeType extends BaseType {
   default() {
@@ -74,18 +74,17 @@ export class DateTimeType extends BaseType {
 
       toJS: () => {
         return self.value;
-      }
-    }
+      },
+    };
   }
 }
-
 
 export class TypeWrapper {
   constructor(driver) {
     this.driver = driver;
 
-    this.DateTime = (value) => new DateTimeType(this.driver, value);
-    this.String = (value) => new StringType(this.driver, value);
-    this.Boolean = (value) => new BooleanType(this.driver, value);
+    this.dateTime = (value) => new DateTimeType(this.driver, value);
+    this.string = (value) => new StringType(this.driver, value);
+    this.boolean = (value) => new BooleanType(this.driver, value);
   }
 }

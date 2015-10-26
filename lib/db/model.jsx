@@ -1,15 +1,15 @@
 import Promise from 'bluebird';
 
-import { TypeWrapper } from './types';
+import * as Types from './types';
 import drivers from './drivers';
 
 export default class Model {
 
   fields: {
-    name: types.String,
-    applied: types.Boolean,
-    migration_time: types.DateTime,
-    checksum: types.String
+    name: Types.String,
+    applied: Types.Boolean,
+    migration_time: Types.DateTime,
+    checksum: Types.String
   }
 
   constructor(configuration) {
@@ -22,7 +22,7 @@ export default class Model {
 
     this.configuration = configuration;
     this.driver = new Driver(configuration);
-    this.typeWrapper = new TypeWrapper(driver);
+    this.typeWrapper = new Types.TypeWrapper(driver);
   }
 
   connect() {
@@ -38,13 +38,14 @@ export default class Model {
 
     return this.connect()
       .then(() => {
-        return this.driver.query(`INSERT INTO ${this.configuration.tableName} (name, applied, migration_time, checksum) VALUES (?, ?, ?, ?)`,
-        [
-          this.typeWrapper.String(name).toSQL(),
-          this.typeWrapper.Boolean(applied).toSQL(),
-          this.typeWrapper.DateTime(migration_time).toSQL(),
-          this.typeWrapper.String(checksum).toSQL(),
-        ]);
+        return this.driver.query(
+          `INSERT INTO ${this.configuration.tableName} (name, applied, migration_time, checksum) VALUES (?, ?, ?, ?)`,
+          [
+            this.typeWrapper.string(name).toSQL(),
+            this.typeWrapper.boolean(applied).toSQL(),
+            this.typeWrapper.dateTime(migration_time).toSQL(),
+            this.typeWrapper.string(checksum).toSQL(),
+          ]);
       });
   }
 
