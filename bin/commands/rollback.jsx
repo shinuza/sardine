@@ -3,8 +3,7 @@ import { EmptyBatchError } from '../../lib/errors';
 import { showInfo, showVerbose } from '../util';
 
 export default function rollback(config, command) {
-  const { directory } = config;
-  const migrations = new Migrations(directory);
+  const migrations = new Migrations(config);
 
   migrations.on('applyOne', (m) => {
     showInfo(`Rolling back "${m.name}"`);

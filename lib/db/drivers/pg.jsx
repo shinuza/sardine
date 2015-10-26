@@ -43,7 +43,8 @@ export default class Pg extends Driver {
       try {
         client.end();
         resolve();
-      } catch(e) {
+      }
+      catch(e) {
         reject(e);
       }
     });
@@ -51,10 +52,10 @@ export default class Pg extends Driver {
 
   sql(sql) {
     let i = 0;
-    return sql.replace(/\?/g, function() {
+    return sql.replace(/\?/g, () => {
       i = i + 1;
       return `$${i}`;
-    })
+    });
   }
 
   result({ rows }) {

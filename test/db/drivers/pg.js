@@ -1,27 +1,41 @@
 var assert = require('assert');
 
-var config = require('../../testSardineConfig');
+var config = require('../../testConfig/pg');
 var Pg = require('../../../lib/db/drivers/pg.jsx');
 var Model = require('../../../lib/db/model.jsx');
-
-config.driver = 'pg';
+var pgRawQuery = require('../helpers').pgRawQuery;
 
 describe('Postgres', function() {
-  describe('#close()', function() {
-    it('should not allow queries when #close has been called', function(done) {
-      const db = new Pg(config);
+  let db;
+
+  before(function(done) {
+    pgRawQuery(`CREATE DATABASE ${config.connection.database}`, done);
+  });
+
+  after(function(done) {
+    let p = Promise.resolve();
+    if(db.connected()) {
+      p = db.disconnect();
+    }
+
+    p.then(() => pgRawQuery(`DROP DATABASE ${config.connection.database}`, done))
+      .catch(done);
+  });
+
+  describe('#disconnect()', function() {
+    it('should not allow queries when #disconnect has been called', function(done) {
+      db = new Pg(config);
 
       db.connect()
         .then(() => db.query('SELECT 1;'))
-        .then(() => db.close())
+        .then(() => db.disconnect())
         .then(() => db.query('SELECT 1;'))
-        .then(() => done(new Error('Allowed a query after close')))
+        .then(() => done(new Error('Allowed a query after #disconnect()')))
         .catch((e) => done());
     });
   });
 
   describe('Queries', function() {
-    let db;
     let model;
     let wrappedInsert;
     let queries;
@@ -45,7 +59,7 @@ describe('Postgres', function() {
         return model.dropTable()
           .then(() => {
             done();
-            return db.close();
+            return db.disconnect();
           })
           .catch(done);
       }
@@ -87,9 +101,9 @@ describe('Postgres', function() {
             assert.notEqual(e, undefined);
             assert.equal(e.code, '23502');
           })
-          .then(() => model.findAllByName())
+          .then(() => model.countAll())
           .then((count) => {
-            assert.equal(count, 0);
+            assert.strictEqual(count, '0');
             done();
           })
           .catch(done);

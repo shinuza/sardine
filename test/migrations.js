@@ -8,11 +8,12 @@ var Migrations = require('../lib/migrations.jsx');
 var errors = require('../lib/errors.jsx');
 var SARDINE_CONFIG = require('../lib/config').SARDINE_CONFIG;
 var SANDBOX = path.resolve(__dirname, 'sandbox');
+var config = require('./testConfig/sqlite3'); // It doesn't matter, really
 
 describe('Migrations', function() {
   describe('#isLastest()', function() {
     it('detect the latest migration', function() {
-      const migrations = new Migrations('');
+      const migrations = new Migrations(config);
       migrations.discovered = [{name: 'foo'}, {name: 'bar'}];
 
       assert.equal(true,  migrations._isLatest({name: 'bar'}));
@@ -43,7 +44,7 @@ describe('Migrations', function() {
 
   describe('#create(suffix)', function() {
     it('should return paths for a given date and suffix', function() {
-      const migrations = new Migrations('./fixtures/migrations');
+      const migrations = new Migrations(config);
       const rootDir = '20150210_221003_foobar';
       const expected = {
         up: path.join(rootDir, 'up'),
@@ -63,7 +64,7 @@ describe('Migrations', function() {
     });
 
     it('should create the sardineConfig file when it does not exist', function(done) {
-      const migrations = new Migrations();
+      const migrations = new Migrations(config);
       const p = Promise.reject(new errors.MissingConfiguration('Yup, it failed'));
 
       migrations.on('init:success', () => {
@@ -75,7 +76,7 @@ describe('Migrations', function() {
     });
 
     it('should not create the sandineConfig file when it already exists', function(done) {
-      const migrations = new Migrations();
+      const migrations = new Migrations(config);
       const p = Promise.resolve();
 
       migrations.on('init:success', () => {
@@ -90,7 +91,7 @@ describe('Migrations', function() {
 
   describe('#step(migrationName, suffixes [, suffixes])', function() {
     it('should return paths for a given suffix and list of names given', function() {
-      const migrations = new Migrations();
+      const migrations = new Migrations(config);
       migrations.discovered = [{name: '20150210_221003_foobar', steps: 2}, {name: '20150210_221203_fizzbuzz', steps: 0}];
       const expected = [
         path.join('20150210_221003_foobar', 'up', '03_baz.sql'),
@@ -104,7 +105,7 @@ describe('Migrations', function() {
     });
 
     it('should return null if the fuzzy search fails', function() {
-      const migrations = new Migrations();
+      const migrations = new Migrations(config);
       migrations.discovered = [{name: '20150210_221003_foobar'}, {name: '20150210_221203_fizzbuzz'}];
 
       assert.throws(function() {
@@ -115,7 +116,7 @@ describe('Migrations', function() {
 
   describe('#state(discovered, recorded)', function() {
     it('should return a list of discovered migrations indicating if they are the current one or not', function() {
-      const migrations = new Migrations();
+      const migrations = new Migrations(config);
       const discovered = [
         {name: '20150210_221003_foo'},
         {name: '20150210_221203_bar'},

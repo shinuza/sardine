@@ -1,21 +1,19 @@
 var assert = require('assert');
 
-var config = require('../../testSardineConfig');
+var config = require('../../testConfig/sqlite3');
 var SQLite3 = require('../../../lib/db/drivers/sqlite3.jsx');
 var Model = require('../../../lib/db/model.jsx');
 
-config.driver = 'sqlite3';
-
 describe('SQLite3', function() {
-  describe('#close()', function() {
-    it('should not allow queries when #close has been called', function(done) {
+  describe('#disconnect()', function() {
+    it('should not allow queries when #disconnect has been called', function(done) {
       const db = new SQLite3(config);
 
       db.connect()
         .then(() => db.query('SELECT 1;'))
-        .then(() => db.close())
+        .then(() => db.disconnect())
         .then(() => db.query('SELECT 1;'))
-        .then(() => done(new Error('Allowed a query after close')))
+        .then(() => done(new Error('Allowed a query after disconnect')))
         .catch((e) => done());
     });
   });
@@ -45,7 +43,7 @@ describe('SQLite3', function() {
         return model.dropTable()
           .then(() => {
             done();
-            return db.close();
+            return db.disconnect();
           })
           .catch(done);
       }

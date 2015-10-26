@@ -11,8 +11,26 @@ export default class Driver {
     this.configuration = configuration;
   }
 
-  getName() {
+  connect() {
     throw new ReferenceError('Not implemented!');
+  }
+
+  disconnect() {
+    if(!this.connected()) {
+      return Promise.reject(new ReferenceError(`Can't close the database, it's not open`));
+    }
+    return this.client
+      .closeAsync()
+      .then(() => {
+        this._connected = false;
+      });
+  }
+
+  connected(val) {
+    if(val) {
+      this._connected = val;
+    }
+    return this.client && this._connected;
   }
 
   getModule() {
@@ -31,7 +49,8 @@ export default class Driver {
 
   query(sql, params = []) {
     if(!this.connected()) {
-      return Promise.reject(new ReferenceError(`${this.constructor.name}.connect() must be called before doing any query`));
+      return Promise.reject(
+        new ReferenceError(`${this.constructor.name}.connect() must be called before doing any query`));
     }
 
     sql = this.sql(sql);
@@ -43,7 +62,8 @@ export default class Driver {
 
   transaction(queries) {
     if(!this.connected()) {
-      return Promise.reject(new ReferenceError(`${this.constructor.name}.connect() must be called before doing any transaction`));
+      return Promise.reject(
+        new ReferenceError(`${this.constructor.name}.connect() must be called before doing any transaction`));
     }
 
     return this.client.queryAsync('BEGIN')
@@ -61,24 +81,6 @@ export default class Driver {
         throw e;
       });
     });
-  }
-
-  close() {
-    if(!this.connected()) {
-      return Promise.reject(new ReferenceError(`Can't close the database, it's not open`));
-    }
-    return this.client
-      .closeAsync()
-      .then(() => {
-        this.connected = false;
-      });
-  }
-
-  connected(val) {
-    if(val) {
-      this._connected = val;
-    }
-    return this._connected;
   }
 
   sql(sql) {

@@ -13,7 +13,7 @@ export default class Model {
   }
 
   constructor(configuration) {
-    const { driver, connection } = configuration
+    const { driver } = configuration;
     const Driver = drivers[driver];
 
     if(!Driver) {
@@ -31,6 +31,22 @@ export default class Model {
     }
 
     return this.driver.connect();
+  }
+
+  disconnect() {
+    if(!this.driver.connected()) {
+      return Promise.resolve();
+    }
+
+    return this.driver.disconnect();
+  }
+
+  query() {
+    return this.driver.query.apply(this.driver, arguments);
+  }
+
+  transaction() {
+    return this.driver.transaction.apply(this.driver, arguments);
   }
 
   insert(values) {

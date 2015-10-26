@@ -34,7 +34,7 @@ export default class SQLite3Driver extends Driver {
 
         self.connected(true);
         resolve(client);
-    });
       });
+    });
   }
 }

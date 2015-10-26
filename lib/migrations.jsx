@@ -6,12 +6,12 @@ import Promise from 'bluebird';
 import co from 'co';
 import _ from 'lodash';
 
-import * as Db from './db';
 import * as filters from './filters';
 import { snake } from './date';
 import { SARDINE_CONFIG } from './config';
-import { IntegrityError, EmptyBatchError, TransactionError, MigrationNotFound, MissingConfiguration } from './errors';
+import { IntegrityError, EmptyBatchError, MigrationNotFound, MissingConfiguration } from './errors';
 import { checksum, twoDigits } from './util';
+import Model from './db/model';
 
 Promise.promisifyAll(fs);
 
@@ -29,9 +29,10 @@ const CONFIG_TEMPLATE = `module.exports = {
 `;
 
 export default class Migrations extends EventEmitter {
-  constructor(rootDir) {
+  constructor(config) {
     super();
-    this.rootDir = rootDir;
+    this.config = config;
+    this.model = new Model(config);
   }
 
   init(config, cwd) {
@@ -44,10 +45,49 @@ export default class Migrations extends EventEmitter {
       });
   }
 
+  create(date, suffix) {
+    const snakeDate = snake(date);
+    const rootDir = `${snakeDate}_${suffix}`;
+
+    return {
+      rootDir,
+      up: join(rootDir, 'up'),
+      down: join(rootDir, 'down'),
+    };
+  }
+
+  step(migrationName, suffixes) {
+    const paths = [];
+    const target = _.find(this.discovered, (m) => _.contains(m.name, migrationName));
+
+    if(!target) {
+      throw new MigrationNotFound(`Migration "${migrationName}" not found`);
+    }
+
+    ['up', 'down'].forEach((direction) => {
+      suffixes.forEach((suffix, index) => {
+        const filename = `${twoDigits(target.steps + index + 1)}_${suffix}.sql`;
+        paths.push(`${join(target.name, direction, filename)}`);
+      });
+    });
+
+    return paths;
+  }
+
+  state(discovered, recorded) {
+    const current = filters.current(discovered, recorded);
+
+    return discovered.map((m) => ({
+      name: m.name,
+      current: m.name === current.name,
+    }));
+  }
+
   discover() {
-    return fs.readdirAsync(this.rootDir).then((dirs) =>
+    const { directory } = this.config;
+    return fs.readdirAsync(directory).then((dirs) =>
       Promise.all(
-        dirs.map((dir) => this.read(resolve(this.rootDir, dir)))
+        dirs.map((dir) => this.read(resolve(directory, dir)))
       ).then((discovered) => {
         this.discovered = discovered;
         return discovered;
@@ -102,49 +142,11 @@ export default class Migrations extends EventEmitter {
     return _.last(this.discovered).name === migration.name;
   }
 
-  create(date, suffix) {
-    const snakeDate = snake(date);
-    const rootDir = `${snakeDate}_${suffix}`;
-
-    return {
-      rootDir,
-      up: join(rootDir, 'up'),
-      down: join(rootDir, 'down'),
-    };
-  }
-
-  step(migrationName, suffixes) {
-    const paths = [];
-    const target = _.find(this.discovered, (m) => _.contains(m.name, migrationName));
-
-    if(!target) {
-      throw new MigrationNotFound(`Migration "${migrationName}" not found`);
-    }
-
-    ['up', 'down'].forEach((direction) => {
-      suffixes.forEach((suffix, index) => {
-        const filename = `${twoDigits(target.steps + index + 1)}_${suffix}.sql`;
-        paths.push(`${join(target.name, direction, filename)}`);
-      });
-    });
-
-    return paths;
-  }
-
-  state(discovered, recorded) {
-    const current = filters.current(discovered, recorded);
-
-    return discovered.map((m) => ({
-      name: m.name,
-      current: m.name === current.name,
-    }));
-  }
-
   getUpdateBatch() {
     return this
       .discover()
       .then((discovered) =>
-        Db.findMigrations().then((recorded) => {
+        this.model.findAllByName().then((recorded) => {
           const batch = filters.update(discovered, recorded);
           return { recorded, batch };
         }));
@@ -154,7 +156,7 @@ export default class Migrations extends EventEmitter {
     return this
       .discover()
       .then((discovered) =>
-        Db.findLastAppliedMigrations(limitToLast).then((recorded) => {
+        this.model.findLastAppliedMigrations(limitToLast).then((recorded) => {
           const batch = filters.rollback(discovered, recorded);
           batch.reverse();
           return { recorded, batch };
@@ -170,15 +172,18 @@ export default class Migrations extends EventEmitter {
   }
 
   applyBatch({ batch, recorded, direction }) {
+    const self = this;
+
     if(batch.length === 0) {
       throw new EmptyBatchError('Cannot apply empty batch');
     }
-    const self = this;
-    return co(function* apply() {
-      for (const migration of batch) {
-        yield self.applyOne({ migration, recorded, direction });
-      }
-    });
+
+    return this.model.connect()
+      .then(() => co(function* apply() {
+        for (const migration of batch) {
+          yield self.applyOne({ migration, recorded, direction });
+        }
+      }));
   }
 
   applyOne({ migration, recorded, direction }) {
@@ -192,33 +197,24 @@ export default class Migrations extends EventEmitter {
       }
     }
 
-    return Db.getDb()
-      .then(({ db }) => {
-        const self = this;
-        return db.tx(function transaction() {
-          const batch = migration[direction].files.map((file) => {
-            const path = `${migration.name}/${direction}/${file.filename}`;
+    const batch = migration[direction].files.map((file) => {
+      return () => {
+        const path = `${migration.name}/${direction}/${file.filename}`;
+        this.emit('step', path);
+        return this.model.query(file.contents.toString());
+      };
+    });
 
-            self.emit('step', path);
-            return this.query(file.contents.toString());
-          });
-          return this.batch(batch);
-        })
-        .then(() => {
-          if(known) {
-            return Db.updateMigration(known, direction);
-          }
-          return Db.recordMigration(migration);
-        })
-        .catch((e) => {
-          // db.tx calls catch with an array of succeeded/errored operations
-          if(Array.isArray(e)) {
-            const errorIndex = _.findIndex(e, (res) => !res.success);
-            const file = migration[direction].files[errorIndex];
-            e = new TransactionError(
-              `In "${migration.name}/${direction}/${file.filename}": ${e[errorIndex].result.message}`);
-          }
-          throw e;
+    return this.model.transaction(batch)
+      .then(() => {
+        if(known) {
+          return this.model.update({ name: known.name, applied: direction === 'up' });
+        }
+        return this.model.insert({
+          name: migration.name,
+          applied: true,
+          migration_time: new Date(),
+          checksum: migration.checksum,
         });
       });
   }
