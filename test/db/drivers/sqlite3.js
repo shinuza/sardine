@@ -3,6 +3,7 @@ import assert from 'assert';
 import config from '../../testConfig/sqlite3';
 import SQLite3 from '../../../lib/db/drivers/sqlite3';
 import Model from '../../../lib/db/model';
+import errors from '../../../lib/errors';
 
 describe('SQLite3', () => {
   describe('#disconnect()', () => {
@@ -114,7 +115,7 @@ describe('SQLite3', () => {
         .then(() => db.transaction(queries))
         .catch((e) => {
           assert.notEqual(e, void 0);
-          assert.equal(e.code, 'SQLITE_CONSTRAINT');
+          assert.equal(e.code, errors.SQLITE.SQLITE_CONSTRAINT);
         })
         .then(() => model.countAll())
         .then((count) => {

@@ -1,6 +1,7 @@
 import assert from 'assert';
 
 import config from '../../testConfig/pg';
+import errors from '../../../lib/errors';
 import Pg from '../../../lib/db/drivers/pg';
 import Model from '../../../lib/db/model';
 import { pgRawQuery } from '../helpers';
@@ -125,7 +126,7 @@ describe('Postgres', () => {
           .then(() => db.transaction(queries))
           .catch((e) => {
             assert.notEqual(e, void 0);
-            assert.equal(e.code, '23502');
+            assert.equal(e.code, errors.PG.NOT_NULL_VIOLATION);
           })
           .then(() => model.countAll())
           .then((count) => {
