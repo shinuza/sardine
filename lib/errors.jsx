@@ -26,6 +26,13 @@ class MissingMigrationDirectory extends Error {
   }
 }
 
+class MissingDependency extends Error {
+  constructor(message) {
+    super();
+    this.message = message;
+  }
+}
+
 class TransactionError extends Error {
   constructor(message) {
     super();
@@ -47,12 +54,21 @@ class MigrationNotFound extends Error {
   }
 }
 
+class EmptyBatchError extends Error {
+  constructor(message) {
+    super();
+    this.message = message;
+  }
+}
+
 export default {
   IntegrityError,
+  MigrationNotFound,
+  MissingDependency,
   MissingConfiguration,
   MissingMigrationDirectory,
+  PendingMigrations,
   TransactionError,
   UndefinedConfiguration,
-  PendingMigrations,
-  MigrationNotFound,
+  EmptyBatchError,
 };

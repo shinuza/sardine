@@ -8,7 +8,7 @@ import { showInfo, showVerbose } from '../util';
 
 export default function create(config, suffix, command) {
   const { directory } = config;
-  const migrations = new Migrations(directory);
+  const migrations = new Migrations(config);
 
   return migrations.getUpdateBatch()
     .then(({ batch }) => {

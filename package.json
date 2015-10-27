@@ -4,7 +4,7 @@
   "description": "A simple migration for postgresql (for now)",
   "main": "index.js",
   "scripts": {
-    "test": "mocha --compilers jsx:babel/register",
+    "test": "mocha --recursive --compilers jsx:babel/register",
     "lint": "eslint lib/*.jsx bin/**/*.jsx --max-warnings 0",
     "prepublish": "sh prepublish.sh",
     "clean": "rm -rf dist/ && mkdir dist",

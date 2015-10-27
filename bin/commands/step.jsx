@@ -10,7 +10,7 @@ const writeFileAsync = Promise.promisify(writeFile);
 
 export default function step(config, migrationName, suffixes) {
   const { directory } = config;
-  const migrations = new Migrations(directory);
+  const migrations = new Migrations(config);
 
   return migrations
     .discover()

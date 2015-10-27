@@ -1,34 +1,15 @@
-import { writeFile } from 'fs';
-import { resolve } from 'path';
-
-import Promise from 'bluebird';
-
 import { showError, showInfo, showWarning } from '../util';
-import { MissingConfiguration } from '../../lib/errors';
-import { SARDINE_CONFIG, config } from '../../lib/config';
+import Migrations from '../../lib/migrations';
+import { SARDINE_CONFIG } from '../../lib/config';
 
-const writeFileAsync = Promise.promisify(writeFile);
+export default function init(config, cwd) {
+  const migrations = new Migrations();
 
-const TEMPLATE = `module.exports = {
-  directory: 'migrations',
-  tableName: 'sardine_migrations',
-  connection: {
-    host:     'localhost',
-    user:     'postgres',
-    password: 'postgres',
-    database: 'postgres'
-  }
-};
-`;
+  migrations.on('init:noop', () => showWarning('Already initialized'));
+  migrations.on('init:success', () => showInfo(`Initialized current directory with ${SARDINE_CONFIG}`));
 
-export default function init() {
-  config()
-    .then(() => showWarning('Already initialized'))
-    .catch(MissingConfiguration, () => {
-      const path = resolve(process.cwd(), SARDINE_CONFIG);
-      return writeFileAsync(path, TEMPLATE)
-        .then(() => showInfo(`Initialized current directory with ${SARDINE_CONFIG}`));
-    })
+  return migrations
+    .init(config, cwd)
     .catch((e) => {
       showError(e.stack);
     });

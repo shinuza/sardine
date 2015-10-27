@@ -1,9 +1,9 @@
 import Migrations from '../../lib/migrations';
+import { EmptyBatchError } from '../../lib/errors';
 import { showInfo, showVerbose } from '../util';
 
 export default function update(config, command) {
-  const { directory } = config;
-  const migrations = new Migrations(directory);
+  const migrations = new Migrations(config);
 
   migrations.on('applyOne', (m) => {
     showInfo(`Applying "${m.name}"`);
@@ -17,11 +17,6 @@ export default function update(config, command) {
 
   return migrations
     .getUpdateBatch()
-    .then(({ batch, recorded }) => {
-      if(!batch.length) {
-        return showInfo('Everything already up to date');
-      }
-
-      return migrations.up({ batch, recorded });
-    });
+    .then(migrations.up.bind(migrations))
+    .catch(EmptyBatchError, () => showInfo('Everything already up to date'));
 }

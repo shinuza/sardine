@@ -8,11 +8,4 @@ describe('Util', function() {
       assert.equal(util.twoDigits(2), '02');
     });
   });
-
-  describe('#snakeDate()', function() {
-    it('should create a date that is useable as a directory name', function() {
-      var date = new Date(2015, 11, 9, 1, 3, 20);
-      assert.equal(util.snakeDate(date), '20151209_010320');
-    });
-  });
 });

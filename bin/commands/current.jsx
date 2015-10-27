@@ -5,8 +5,7 @@ import * as db from '../../lib/db';
 import Migrations from '../../lib/migrations';
 
 export default function current(config) {
-  const { directory } = config;
-  const migrations = new Migrations(directory);
+  const migrations = new Migrations(config);
 
   return Promise.all([migrations.discover(), db.findMigrations()]).then(([discovered, recorded]) => {
     const lines = migrations
