@@ -30,12 +30,52 @@ describe('sqlite3-migrations', () => {
             ],
           },
         },
+        {
+          name: 'v2',
+          checksum: 'v2_checksum',
+          steps: 1,
+          up: {
+            files: [
+              { filename: '04_foo.sql', contents: 'CREATE TABLE foo4("id" INTEGER PRIMARY KEY AUTOINCREMENT);' },
+            ],
+          },
+        },
       ];
       migrations.discovered = batch;
       migrations.up({ batch, recorded: [] })
-        .then(() => migrations.model.driver.query('SELECT 1 from foo1, foo2, foo3'))
+        .then(() => migrations.model.driver.query('SELECT 1 from foo1, foo2, foo3, foo4'))
         .then(() => done())
         .catch(done);
+    });
+
+    it('should rollback when one of the steps contains an error', (done) => {
+      migrations = new Migrations(config);
+      const batch = [
+        {
+          name: 'v3',
+          checksum: 'v3_checksum',
+          steps: 3,
+          up: {
+            files: [
+                { filename: '01_foo.sql', contents: 'CREATE TABLE fo5("id" INTEGER PRIMARY KEY AUTOINCREMENT);' },
+                { filename: '02_foo.sql', contents: 'CREATE TABLE OUPS);' },
+                { filename: '03_foo.sql', contents: 'CREATE TABLE fo6("id" INTEGER PRIMARY KEY AUTOINCREMENT);' },
+            ],
+          },
+        },
+      ];
+      migrations.discovered = batch;
+      migrations.up({ batch, recorded: [{ name: 'v2' }, { name: 'v3' }] })
+        .catch((e) => {
+          assert.notEqual(e, void 0);
+          assert.strictEqual(e.code, errors.SQLITE.SQLITE_ERROR);
+        })
+        .then(() => migrations.model.driver.query('SELECT 1 from foo5'))
+        .catch((e) => {
+          assert.notEqual(e, void 0);
+          assert.strictEqual(e.code, errors.SQLITE.SQLITE_ERROR);
+        })
+        .then(() => done());
     });
   });
 
@@ -47,7 +87,7 @@ describe('sqlite3-migrations', () => {
       }, errors.EmptyBatchError);
     });
 
-    it('should rollback the latest migration', (done) => {
+    it('should revert the latest migration', (done) => {
       migrations = new Migrations(config);
       const batch = [
         {

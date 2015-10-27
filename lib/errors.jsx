@@ -61,6 +61,17 @@ class EmptyBatchError extends Error {
   }
 }
 
+const PG = {
+  SYNTAX_ERROR: '42601',
+  UNDEFINED_TABLE: '42P01',
+  NOT_NULL_VIOLATION: '23502',
+};
+
+const SQLITE = {
+  SQLITE_ERROR: 'SQLITE_ERROR',
+  SQLITE_CONSTRAINT: 'SQLITE_CONSTRAINT',
+};
+
 export default {
   IntegrityError,
   MigrationNotFound,
@@ -71,4 +82,6 @@ export default {
   TransactionError,
   UndefinedConfiguration,
   EmptyBatchError,
+  PG,
+  SQLITE,
 };

@@ -64,6 +64,36 @@ describe('pg-migrations', () => {
         .then(() => done())
         .catch(done);
     });
+
+    it('should rollback when one of the steps contains an error', (done) => {
+      migrations = new Migrations(config);
+      const batch = [
+        {
+          name: 'v3',
+          checksum: 'v3_checksum',
+          steps: 3,
+          up: {
+            files: [
+                { filename: '01_foo.sql', contents: 'CREATE TABLE foo5(id serial NOT NULL);' },
+                { filename: '02_foo.sql', contents: 'CREATE TABLE OUPS);' },
+                { filename: '03_foo.sql', contents: 'CREATE TABLE foo6(id serial NOT NULL);' },
+            ],
+          },
+        },
+      ];
+      migrations.discovered = batch;
+      migrations.up({ batch, recorded: [{ name: 'v2' }, { name: 'v3' }] })
+        .catch((e) => {
+          assert.notEqual(e, void 0);
+          assert.strictEqual(e.code, errors.PG.SYNTAX_ERROR);
+        })
+        .then(() => migrations.model.driver.query('SELECT 1 from foo5'))
+        .catch((e) => {
+          assert.notEqual(e, void 0);
+          assert.strictEqual(e.code, errors.PG.UNDEFINED_TABLE);
+        })
+        .then(() => done());
+    });
   });
 
   describe('#down()', () => {
@@ -74,7 +104,7 @@ describe('pg-migrations', () => {
       }, errors.EmptyBatchError);
     });
 
-    it('should rollback the latest migration', (done) => {
+    it('should revert the latest migration', (done) => {
       migrations = new Migrations(config);
       const batch = [
         {
