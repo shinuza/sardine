@@ -26,5 +26,5 @@ export default function create(config, suffix, command) {
         showVerbose(`Created ${paths.up}`);
         showVerbose(`Created ${paths.down}`);
       }
-    });
+    }).then(() => migrations.destroy());
 }

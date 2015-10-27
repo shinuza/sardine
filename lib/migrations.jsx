@@ -31,8 +31,11 @@ const CONFIG_TEMPLATE = `module.exports = {
 export default class Migrations extends EventEmitter {
   constructor(config) {
     super();
-    this.config = config;
-    this.model = new Model(config);
+
+    if(config) {
+      this.config = config;
+      this.model = new Model(config);
+    }
   }
 
   init(config, cwd) {
@@ -217,6 +220,10 @@ export default class Migrations extends EventEmitter {
           checksum: migration.checksum,
         });
       });
+  }
+
+  destroy() {
+    return this.model && this.model.disconnect();
   }
 
   static checkIntegrity(ups, downs, name) {

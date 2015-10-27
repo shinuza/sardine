@@ -22,7 +22,8 @@ export default function step(config, migrationName, suffixes) {
           showInfo(`Created ${path}`);
           return writeFileAsync(resolve(directory, path), '');
         }));
-    });
+    })
+    .then(() => migrations.destroy());
 }
 
 export default step;
