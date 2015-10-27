@@ -2,3 +2,4 @@ node_modules
 migrations
 sardineConfig.js
 dist
+npm-debug.log
