@@ -213,7 +213,7 @@ export default class Migrations extends EventEmitter {
         return this.model.insert({
           name: migration.name,
           applied: true,
-          migration_time: new Date(),
+          migration_time: new Date(), // eslint-disable-line camelcase
           checksum: migration.checksum,
         });
       });

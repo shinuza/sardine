@@ -1,33 +1,35 @@
-var assert = require('assert');
+import assert from 'assert';
 
-var pg = require('sqlite3');
+import Migrations from '../../../lib/migrations.jsx';
+import errors from '../../../lib/errors.jsx';
 
-var Migrations = require('../../../lib/migrations.jsx');
-var Model = require('../../../lib/db/model.jsx')
-var errors = require('../../../lib/errors.jsx');
+describe('sqlite3-migrations', () => {
+  let migrations;
+  const config = require('../../testConfig/sqlite3');
 
-describe('sqlite3-migrations', function() {
-  var migrations;
-  var config = require('../../testConfig/sqlite3');
-
-  describe('#up()', function() {
-    it('should throw when the batch is empty', function() {
+  describe('#up()', () => {
+    it('should throw when the batch is empty', () => {
       migrations = new Migrations(config);
-      assert.throws(function() {
+      assert.throws(() => {
         migrations.up({ batch: [], recorded: [] });
       }, errors.EmptyBatchError);
     });
 
-    it('should create the given tables', function(done) {
+    it('should create the given tables', (done) => {
       migrations = new Migrations(config);
       const batch = [
-        {'name': 'v1', checksum: 'v1_checksum', steps: 3, up: {
-          files: [
-            {filename: '01_foo.sql', contents: 'CREATE TABLE foo1("id" INTEGER PRIMARY KEY AUTOINCREMENT);'},
-            {filename: '02_foo.sql', contents: 'CREATE TABLE foo2("id" INTEGER PRIMARY KEY AUTOINCREMENT);'},
-            {filename: '03_foo.sql', contents: 'CREATE TABLE foo3("id" INTEGER PRIMARY KEY AUTOINCREMENT);'},
-          ]
-        }},
+        {
+          name: 'v1',
+          checksum: 'v1_checksum',
+          steps: 3,
+          up: {
+            files: [
+              { filename: '01_foo.sql', contents: 'CREATE TABLE foo1("id" INTEGER PRIMARY KEY AUTOINCREMENT);' },
+              { filename: '02_foo.sql', contents: 'CREATE TABLE foo2("id" INTEGER PRIMARY KEY AUTOINCREMENT);' },
+              { filename: '03_foo.sql', contents: 'CREATE TABLE foo3("id" INTEGER PRIMARY KEY AUTOINCREMENT);' },
+            ],
+          },
+        },
       ];
       migrations.discovered = batch;
       migrations.up({ batch, recorded: [] })
@@ -37,10 +39,10 @@ describe('sqlite3-migrations', function() {
     });
   });
 
-  describe('#down()', function() {
-    it('should throw when the batch is empty', function() {
-      const migrations = new Migrations(config);
-      assert.throws(function() {
+  describe('#down()', () => {
+    it('should throw when the batch is empty', () => {
+      migrations = new Migrations(config);
+      assert.throws(() => {
         migrations.down({ batch: [], recorded: [] });
       }, errors.EmptyBatchError);
     });

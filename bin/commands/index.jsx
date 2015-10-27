@@ -1,5 +1,3 @@
-import pgp from 'pg-promise';
-
 import { config } from '../../lib/config';
 import { showError } from '../util';
 
@@ -10,8 +8,7 @@ function command(fn, configKeys) {
       .catch((e) => {
         showError(e.stack || e.message);
         process.exitCode = 1;
-      })
-      .then(pgp.end);
+      });
   };
 }
 

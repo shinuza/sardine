@@ -1,53 +1,62 @@
-var assert = require('assert');
+import assert from 'assert';
 
-var Migrations = require('../../../lib/migrations.jsx');
-var Model = require('../../../lib/db/model.jsx')
-var errors = require('../../../lib/errors.jsx');
-var pgRawQuery = require('../helpers').pgRawQuery;
+import Migrations from '../../../lib/migrations.jsx';
+import errors from '../../../lib/errors.jsx';
+import { pgRawQuery } from '../helpers';
 
-describe('pg-migrations', function() {
+describe('pg-migrations', () => {
   let migrations;
-  var config = require('../../testConfig/pg');
+  const config = require('../../testConfig/pg');
 
-  before(function(done) {
+  before((done) => {
     pgRawQuery(`CREATE DATABASE ${config.connection.database}`, done);
   });
 
-  after(function(done) {
+  after((done) => {
     pgRawQuery(`DROP DATABASE ${config.connection.database}`, done);
   });
 
-  afterEach(function(done) {
+  afterEach((done) => {
     let p = Promise.resolve();
-    if(migrations && migrations.model.driver.connected()) {
+    if(migrations && migrations.model && migrations.model.driver.connected()) {
       p = migrations.model.disconnect();
     }
     p.then(done).catch(done);
   });
 
-  describe('#up()', function() {
-    it('should throw when the batch is empty', function() {
+  describe('#up()', () => {
+    it('should throw when the batch is empty', () => {
       migrations = new Migrations(config);
-      assert.throws(function() {
+      assert.throws(() => {
         migrations.up({ batch: [], recorded: [] });
       }, errors.EmptyBatchError);
     });
 
-    it('should create the given tables', function(done) {
+    it('should create the given tables', (done) => {
       migrations = new Migrations(config);
       const batch = [
-        {'name': 'v1', checksum: 'v1_checksum', steps: 3, up: {
-          files: [
-            {filename: '01_foo.sql', contents: 'CREATE TABLE foo1(id serial NOT NULL);'},
-            {filename: '02_foo.sql', contents: 'CREATE TABLE foo2(id serial NOT NULL);'},
-            {filename: '03_foo.sql', contents: 'CREATE TABLE foo3(id serial NOT NULL);'},
-          ]
-        }},
-        {'name': 'v2', checksum: 'v2_checksum', steps: 1, up: {
-          files: [
-            {filename: '04_foo.sql', contents: 'CREATE TABLE foo4(id serial NOT NULL);'},
-          ]
-        }},
+        {
+          name: 'v1',
+          checksum: 'v1_checksum',
+          steps: 3,
+          up: {
+            files: [
+                { filename: '01_foo.sql', contents: 'CREATE TABLE foo1(id serial NOT NULL);' },
+                { filename: '02_foo.sql', contents: 'CREATE TABLE foo2(id serial NOT NULL);' },
+                { filename: '03_foo.sql', contents: 'CREATE TABLE foo3(id serial NOT NULL);' },
+            ],
+          },
+        },
+        {
+          name: 'v2',
+          checksum: 'v2_checksum',
+          steps: 1,
+          up: {
+            files: [
+              { filename: '04_foo.sql', contents: 'CREATE TABLE foo4(id serial NOT NULL);' },
+            ],
+          },
+        },
       ];
       migrations.discovered = batch;
       migrations.up({ batch, recorded: [] })
@@ -57,31 +66,36 @@ describe('pg-migrations', function() {
     });
   });
 
-  describe('#down()', function() {
-    it('should throw when the batch is empty', function() {
+  describe('#down()', () => {
+    it('should throw when the batch is empty', () => {
       migrations = new Migrations(config);
-      assert.throws(function() {
+      assert.throws(() => {
         migrations.down({ batch: [], recorded: [] });
       }, errors.EmptyBatchError);
     });
 
-    it('should rollback the latest migration', function(done) {
+    it('should rollback the latest migration', (done) => {
       migrations = new Migrations(config);
       const batch = [
-        {'name': 'v2', checksum: 'v2_checksum', steps: 1, down: {
-          files: [
-            {filename: '04_foo.sql', contents: 'DROP TABLE foo4;'},
-          ]
-        }},
+        {
+          name: 'v2',
+          checksum: 'v2_checksum',
+          steps: 1,
+          down: {
+            files: [
+              { filename: '04_foo.sql', contents: 'DROP TABLE foo4;' },
+            ],
+          },
+        },
       ];
       migrations.discovered = batch;
-      migrations.down({ batch, recorded: [{name: 'v1'}, {name: 'v2'}] })
+      migrations.down({ batch, recorded: [{ name: 'v1' }, { name: 'v2' }] })
         .then(() => migrations.model.driver.query('SELECT 1 from foo4'))
         .then(() => {
           done(new Error('Did not revert latest migrations'));
         })
         .catch((e) => {
-          assert.notEqual(e, undefined);
+          assert.notEqual(e, void 0);
           assert.equal(e.code, '42P01');
           done();
         });

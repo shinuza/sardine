@@ -1,18 +1,18 @@
-var assert = require('assert');
+import assert from 'assert';
 
-var config = require('../../testConfig/pg');
-var Pg = require('../../../lib/db/drivers/pg.jsx');
-var Model = require('../../../lib/db/model.jsx');
-var pgRawQuery = require('../helpers').pgRawQuery;
+import config from '../../testConfig/pg';
+import Pg from '../../../lib/db/drivers/pg';
+import Model from '../../../lib/db/model';
+import { pgRawQuery } from '../helpers';
 
-describe('Postgres', function() {
+describe('Postgres', () => {
   let db;
 
-  before(function(done) {
+  before((done) => {
     pgRawQuery(`CREATE DATABASE ${config.connection.database}`, done);
   });
 
-  after(function(done) {
+  after((done) => {
     let p = Promise.resolve();
     if(db.connected()) {
       p = db.disconnect();
@@ -22,8 +22,8 @@ describe('Postgres', function() {
       .catch(done);
   });
 
-  describe('#disconnect()', function() {
-    it('should not allow queries when #disconnect has been called', function(done) {
+  describe('#disconnect()', () => {
+    it('should not allow queries when #disconnect has been called', (done) => {
       db = new Pg(config);
 
       db.connect()
@@ -31,16 +31,16 @@ describe('Postgres', function() {
         .then(() => db.disconnect())
         .then(() => db.query('SELECT 1;'))
         .then(() => done(new Error('Allowed a query after #disconnect()')))
-        .catch((e) => done());
+        .catch(() => done());
     });
   });
 
-  describe('Queries', function() {
+  describe('Queries', () => {
     let model;
     let wrappedInsert;
     let queries;
 
-    beforeEach(function() {
+    beforeEach(() => {
       db = new Pg(config);
       model = new Model(config);
       model.driver = db;
@@ -48,13 +48,28 @@ describe('Postgres', function() {
         return () => model.insert(values);
       };
       queries = [
-        { name: 'foobar1', 'applied': false, 'migration_time': new Date(2015, 0, 1, 1, 2, 3, 500), 'checksum': 'checksum'},
-        { name: 'foobar2', 'applied': false, 'migration_time': new Date(2015, 0, 1, 1, 2, 3, 502), 'checksum': 'checksum'},
-        { name: 'foobar3', 'applied': false, 'migration_time': new Date(2015, 0, 1, 1, 2, 3, 502), 'checksum': 'checksum'}
+        {
+          name: 'foobar1',
+          applied: false,
+          migration_time: new Date(2015, 0, 1, 1, 2, 3, 500), // eslint-disable-line camelcase
+          checksum: 'checksum',
+        },
+        {
+          name: 'foobar2',
+          applied: false,
+          migration_time: new Date(2015, 0, 1, 1, 2, 3, 500), // eslint-disable-line camelcase
+          checksum: 'checksum',
+        },
+        {
+          name: 'foobar3',
+          applied: false,
+          migration_time: new Date(2015, 0, 1, 1, 2, 3, 500), // eslint-disable-line camelcase
+          checksum: 'checksum',
+        },
       ].map(wrappedInsert);
     });
 
-    afterEach(function(done) {
+    afterEach((done) => {
       if(db.connected()) {
         return model.dropTable()
           .then(() => {
@@ -66,23 +81,28 @@ describe('Postgres', function() {
       done();
     });
 
-    describe('#query()', function() {
-      it('should run the given query', function(done) {
-        const values = { name: 'foobar_query', 'applied': false, 'migration_time': new Date(2015, 0, 1, 1, 2, 3, 500), 'checksum': 'checksum'};
+    describe('#query()', () => {
+      it('should run the given query', (done) => {
+        const values = {
+          name: 'foobar_query',
+          applied: false,
+          migration_time: new Date(2015, 0, 1, 1, 2, 3, 500), // eslint-disable-line camelcase
+          checksum: 'checksum',
+        };
 
         db.connect()
           .then(() => model.insert(values))
           .then(() => model.findAllByName())
           .then((res) => {
-            assert.deepEqual(res, [Object.assign({id: 1}, values)]);
+            assert.deepEqual(res, [Object.assign({ id: 1 }, values)]);
             done();
           })
           .catch(done);
       });
     });
 
-    describe('#transaction()', function() {
-      it('should commit the transaction with valid queries', function(done) {
+    describe('#transaction()', () => {
+      it('should commit the transaction with valid queries', (done) => {
         db.connect()
           .then(() => db.transaction(queries))
           .then(() => model.countAll())
@@ -93,12 +113,18 @@ describe('Postgres', function() {
           .catch(done);
       });
 
-      it('should rollback the transaction with invalid queries', function(done) {
-        queries[1] = wrappedInsert({ name: null, 'applied': false, 'migration_time': new Date(2015, 0, 1, 1, 2, 3, 502), 'checksum': 'checksum'});
+      it('should rollback the transaction with invalid queries', (done) => {
+        queries[1] = wrappedInsert({
+          name: null,
+          applied: false,
+          migration_time: new Date(2015, 0, 1, 1, 2, 3, 502), // eslint-disable-line camelcase
+          checksum: 'checksum',
+        });
+
         db.connect()
           .then(() => db.transaction(queries))
           .catch((e) => {
-            assert.notEqual(e, undefined);
+            assert.notEqual(e, void 0);
             assert.equal(e.code, '23502');
           })
           .then(() => model.countAll())

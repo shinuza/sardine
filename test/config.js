@@ -1,13 +1,14 @@
-var assert = require('assert');
-var config = require('../lib/config.jsx');
-var errors = require('../lib/errors.jsx');
+import assert from 'assert';
 
-describe('Config', function() {
-  describe('#checkKeys()', function() {
-    it('should return an error when a requested key is missing', function() {
-      assert.throws(function() {
-        config.checkKeys({'foo': true, 'bar': true, 'baz': true}, ['buz', 'boz']);
-      }, errors.UndefinedConfiguration);
+import { checkKeys } from '../lib/config';
+import { UndefinedConfiguration } from '../lib/errors';
+
+describe('Config', () => {
+  describe('#checkKeys()', () => {
+    it('should return an error when a requested key is missing', () => {
+      assert.throws(() => {
+        checkKeys({ foo: true, bar: true, baz: true }, ['buz', 'boz']);
+      }, UndefinedConfiguration);
     });
   });
 });

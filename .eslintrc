@@ -1,4 +1,12 @@
 {
+  "globals": {
+    "describe": true,
+    "afterEach": true,
+    "beforeEach": true,
+    "before": true,
+    "after": true,
+    "it": true
+  },
   "ecmaFeatures": {
     "arrowFunctions": true,
     "binaryLiterals": false,

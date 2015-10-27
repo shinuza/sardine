@@ -1,10 +1,11 @@
-var assert = require('assert');
-var Model = require('../../lib/db/model');
+import assert from 'assert';
 
-describe('Model', function() {
-    it('should throw an error with an unknown driver', function() {
-      assert.throws(function() {
-        new Model({driver: 'unknown'});
-      }, ReferenceError);
-    });
+import Model from '../../lib/db/model';
+
+describe('Model', () => {
+  it('should throw an error with an unknown driver', () => {
+    assert.throws(() => {
+      void new Model({ driver: 'unknown' });
+    }, ReferenceError);
+  });
 });

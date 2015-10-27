@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "mocha --recursive --compilers jsx:babel/register",
-    "lint": "eslint lib/*.jsx bin/**/*.jsx --max-warnings 0",
+    "lint": "eslint lib/*.jsx bin/**/*.jsx test/**/*.js --max-warnings 0",
     "prepublish": "sh prepublish.sh",
     "clean": "rm -rf dist/ && mkdir dist",
     "compile-bin": "babel bin --out-dir dist/bin -x \".jsx\"",
@@ -52,7 +52,6 @@
     "commander": "^2.9.0",
     "lodash": "^3.10.1",
     "mkdirp": "^0.5.1",
-    "pg-promise": "^2.0.12",
     "source-map-support": "^0.3.2"
   },
   "devDependencies": {
