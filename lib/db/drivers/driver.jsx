@@ -36,7 +36,8 @@ export default class Driver {
   getModule() {
     const name = this.getName();
     try {
-      return require(name);
+      const r = require('path').resolve;
+      return require(r(process.cwd(), 'node_modules', name));
     }
     catch(e) {
       if(e.code === 'MODULE_NOT_FOUND') {

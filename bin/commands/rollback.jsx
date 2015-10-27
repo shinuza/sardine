@@ -17,7 +17,7 @@ export default function rollback(config, command) {
 
   return migrations
     .getRollbackBatch(!command.all)
-    .then(() => migrations.down())
+    .then((b) => migrations.down(b))
     .catch(EmptyBatchError, () => showInfo('Already at the earliest revision'))
     .then(() => migrations.destroy());
 }

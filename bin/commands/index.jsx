@@ -7,7 +7,7 @@ function command(fn, configKeys) {
       .then((c) => fn(c, ...args))
       .catch((e) => {
         showError(e.stack || e.message);
-        process.exitCode = 1;
+        process.exit(1);
       });
   };
 }
