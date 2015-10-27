@@ -50,7 +50,7 @@ describe('types', () => {
       assert.equal(type.boolean(bool).toSQL(), 1);
     });
 
-    it('should convert the given bool to a value usable by the mysql driver', () => {
+    it('should convert the given str to a value usable by the mysql driver', () => {
       assert.equal(type.string(str).toSQL(), 'foobar');
     });
   });
