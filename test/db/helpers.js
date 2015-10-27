@@ -1,4 +1,5 @@
 import pg from 'pg';
+import mysql from 'mysql';
 
 export function pgRawQuery(query, cb) {
   const config = require('../testConfig/pg');
@@ -17,5 +18,21 @@ export function pgRawQuery(query, cb) {
       }
       cb();
     });
+  });
+}
+
+export function mysqlRawQuery(query, cb) {
+  const config = require('../testConfig/mysql');
+  const conn = Object.assign({}, config.connection);
+  conn.database = 'test'; // We need to be connected a another database
+
+  const client = mysql.createConnection(conn);
+
+  client.query(query, (err) => {
+    client.destroy();
+    if(err) {
+      return cb(err);
+    }
+    cb();
   });
 }
