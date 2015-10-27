@@ -17,7 +17,7 @@ export default class Model {
     const Driver = drivers[driver];
 
     if(!Driver) {
-      throw new ReferenceError(`Unknown driver ${Driver}`);
+      throw new ReferenceError(`Unknown driver ${driver}`);
     }
 
     this.configuration = configuration;

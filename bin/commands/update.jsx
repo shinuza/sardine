@@ -17,6 +17,7 @@ export default function update(config, command) {
 
   return migrations
     .getUpdateBatch()
-    .then(migrations.up.bind(migrations))
-    .catch(EmptyBatchError, () => showInfo('Everything already up to date'));
+    .then(() => migrations.up())
+    .catch(EmptyBatchError, () => showInfo('Everything already up to date'))
+    .then(migrations.destroy.bind(migrations));
 }
