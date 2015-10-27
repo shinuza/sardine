@@ -46,5 +46,32 @@ describe('sqlite3-migrations', () => {
         migrations.down({ batch: [], recorded: [] });
       }, errors.EmptyBatchError);
     });
+
+    it('should rollback the latest migration', (done) => {
+      migrations = new Migrations(config);
+      const batch = [
+        {
+          name: 'v2',
+          checksum: 'v2_checksum',
+          steps: 1,
+          down: {
+            files: [
+              { filename: '04_foo.sql', contents: 'DROP TABLE foo4;' },
+            ],
+          },
+        },
+      ];
+      migrations.discovered = batch;
+      migrations.down({ batch, recorded: [{ name: 'v1' }, { name: 'v2' }] })
+        .then(() => migrations.model.driver.query('SELECT 1 from foo4'))
+        .then(() => {
+          done(new Error('Did not revert latest migrations'));
+        })
+        .catch((e) => {
+          assert.notEqual(e, void 0);
+          assert.equal(e.code, 'SQLITE_ERROR');
+          done();
+        });
+    });
   });
 });
