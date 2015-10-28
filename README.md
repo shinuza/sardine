@@ -2,7 +2,10 @@
 
   A simple database agnostic migration tool.
 
-  *Only postgres is supported right now, support for [mysql, and sqlite3 in the works](https://github.com/shinuza/sardine/tree/feature-database-agnostic)*
+  Supports:
+  
+  - Postgres
+  - Sqlite3
 
 ## Installation
 
@@ -11,6 +14,12 @@ $ npm install sardine -g
 ```
 
 ## Getting started
+
+Install the driver for your project
+
+```
+$ npm install sqlite3
+```
 
 Initialize a new sardine project
 
