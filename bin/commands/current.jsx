@@ -10,9 +10,14 @@ export default function current(config) {
     .then(([discovered, recorded]) => {
       const lines = migrations
         .state(discovered, recorded)
-        .map((m) => `${m.current ? '*' : ' '} ${[identity, green][m.current + 0](m.name)}`);
+        .map((m) => {
+          const prefix = m.current ? '*' : ' ';
+          const fn = [identity, green][Number(m.current)];
+
+          return `${prefix} ${fn(m.name)}`;
+        });
 
       console.log(lines.join('\n'));
     })
-    .then(() => migrations.destroy());
+    .then(migrations.destroy);
 }

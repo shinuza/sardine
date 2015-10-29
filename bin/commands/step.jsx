@@ -1,29 +1,12 @@
-import { writeFile } from 'fs';
-import { resolve } from 'path';
-
-import Promise from 'bluebird';
-
-import Migrations from '../../lib/migrations';
+import Sardine from '../../lib';
 import { showInfo } from '../util';
 
-const writeFileAsync = Promise.promisify(writeFile);
-
 export default function step(config, migrationName, suffixes) {
-  const { directory } = config;
-  const migrations = new Migrations(config);
+  const sardine = new Sardine(config);
 
-  return migrations
-    .discover()
-    .then(() => {
-      const paths = migrations.step(migrationName, suffixes);
+  sardine.migrations.on('fileCreated:step', (path) => showInfo(`Created ${path}`));
 
-      return Promise.all(
-        paths.map((path) => {
-          showInfo(`Created ${path}`);
-          return writeFileAsync(resolve(directory, path), '');
-        }));
-    })
-    .then(() => migrations.destroy());
+  return sardine.step(migrationName, suffixes);
 }
 
 export default step;

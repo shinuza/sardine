@@ -1,30 +1,15 @@
-import { resolve } from 'path';
+import Sardine from '../../lib';
 
-import mkdirp from 'mkdirp';
-
-import Migrations from '../../lib/migrations';
-import errors from '../../lib/errors';
 import { showInfo, showVerbose } from '../util';
 
 export default function create(config, suffix, command) {
-  const { directory } = config;
-  const migrations = new Migrations(config);
+  const sardine = new Sardine(config);
 
-  return migrations.getUpdateBatch()
-    .then(({ batch }) => {
-      if(batch.length) {
-        throw new errors.PendingMigrations(
-          'You can only edit one new migration at the time, run "sardine up" before creating a new one');
-      }
+  sardine.migrations.on('directoryCreated:migration', (dir) => showInfo(`Created ${dir}`));
 
-      const paths = migrations.create(new Date(), suffix);
-      mkdirp.sync(resolve(directory, paths.up));
-      mkdirp.sync(resolve(directory, paths.down));
+  if(command.parent.verbose) {
+    sardine.migrations.on('directoryCreated:direction', (dir) => showVerbose(`Created ${dir}`));
+  }
 
-      showInfo(`Created ${paths.rootDir}`);
-      if(command.parent.verbose) {
-        showVerbose(`Created ${paths.up}`);
-        showVerbose(`Created ${paths.down}`);
-      }
-    }).then(() => migrations.destroy());
+  return sardine.create(new Date(), suffix);
 }
