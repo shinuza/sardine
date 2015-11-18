@@ -91,6 +91,79 @@ Options:
   -v, --verbose  Display verbose information
 ```
 
+# API
+
+## config
+
+Sardine looks up for a `sardineConfig.js` file in the current directory.
+
+```javascript
+{
+  directory: 'migrations', // Directory in which the migrations will be located
+  tableName: 'sardine_migrations', // Name of Sardine's meta table
+  driver: 'pg', // Driver name, can be pg or sqlite3
+  connection: {
+    host: 'localhost',
+    user: 'postgres',
+    password: '',
+    database: 'postgres',
+  },
+  path: '/usr/local/mybase.sqlite', // Only use for sqlite3
+};
+```
+
+## new Sardine(config)
+
+Creates a new `Sardine` instance with `config`.
+
+```javascript
+const sardine = new Sardine(config);
+```
+
+## .create(date, suffix)
+
+Creates a sardine migration directory using `date` and `suffix`
+
+```javascript
+const sardine = new Sardine(config);
+const date = new Date(2015, 11, 9, 1, 3, 20);
+const suffix = 'foobar';
+sardine.create(date, suffix);
+// Creates 20151209_010320_foobar/up
+// Creates 20151209_010320_foobar/down
+```
+
+## .step(migrationName, [suffix1][, suffix2][, ...])
+
+Fuzzy searches for a directory name `migrationName` and `suffix` step file in both up and down
+
+```javascript
+const sardine = new Sardine(config);
+sardine.step('foobar', ['foo', 'bar']);
+// Creates 20151209_010320_foobar/up/01_foo.sql
+// Creates 20151209_010320_foobar/up/02_bar.sql
+// Creates 20151209_010320_foobar/down/01_foo.sql
+// Creates 20151209_010320_foobar/down/02_bar.sql
+```
+
+## .up()
+
+Applies all migrations
+
+```javascript
+const sardine = new Sardine(config);
+sardine.up();
+```
+
+## .down(all)
+
+Rollbacks the latest migration, rollbacks everything if `all` is true.
+
+```javascript
+const sardine = new Sardine(config);
+sardine.down();
+```
+
 # Code quality
 
 To run tests:
