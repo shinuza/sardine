@@ -13,5 +13,5 @@ export default function init(config, cwd) {
     .catch((e) => {
       showError(e.stack);
     })
-    .then(() => migrations.destroy());
+    .then(migrations.destroy);
 }

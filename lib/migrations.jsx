@@ -36,6 +36,8 @@ export default class Migrations extends EventEmitter {
       this.config = config;
       this.model = new Model(config);
     }
+
+    ['up', 'down', 'destroy'].forEach((fn) => this[fn] = this[fn].bind(this));
   }
 
   init(config, cwd) {
@@ -79,7 +81,6 @@ export default class Migrations extends EventEmitter {
 
   state(discovered, recorded) {
     const current = filters.current(discovered, recorded);
-
     return discovered.map((m) => ({
       name: m.name,
       current: m.name === current.name,
@@ -203,7 +204,7 @@ export default class Migrations extends EventEmitter {
     const batch = migration[direction].files.map((file) => {
       return () => {
         const path = `${migration.name}/${direction}/${file.filename}`;
-        this.emit('step', path);
+        this.emit('stepApplied', path);
         return this.model.query(file.contents.toString());
       };
     });
