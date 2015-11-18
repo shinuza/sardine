@@ -2,7 +2,7 @@
   "name": "sardine",
   "version": "0.3.1",
   "description": "A simple database agnostic migration tool.",
-  "main": "lib/index.js",
+  "main": "dist/lib/index.js",
   "scripts": {
     "test": "mocha --recursive --compilers jsx:babel/register",
     "lint": "eslint lib/*.jsx bin/**/*.jsx test/**/*.js --max-warnings 0",
