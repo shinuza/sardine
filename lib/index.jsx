@@ -20,14 +20,14 @@ export default class Sardine {
     return this.migrations
       .getUpdateBatch()
       .then(this.migrations.up)
-      .then(this.migrations.destroy);
+      .finally(this.migrations.destroy);
   }
 
   down(all) {
     return this.migrations
       .getRollbackBatch(all)
       .then(this.migrations.down)
-      .then(this.migrations.destroy);
+      .finally(this.migrations.destroy);
   }
 
   create(date, suffix) {
@@ -51,7 +51,7 @@ export default class Sardine {
         this.migrations.emit('directoryCreated:direction', paths.down);
         mkdirp.sync(resolve(directory, paths.down));
 
-      }).then(this.migrations.destroy);
+      }).finally(this.migrations.destroy);
   }
 
   step(migrationName, suffixes) {
@@ -68,6 +68,6 @@ export default class Sardine {
           }
         });
       })
-      .then(this.migrations.destroy);
+      .finally(this.migrations.destroy);
   }
 }

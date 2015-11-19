@@ -45,9 +45,9 @@ describe('Postgres', () => {
       db = new Pg(config);
       model = new Model(config);
       model.driver = db;
-      wrappedInsert = (values) => {
-        return () => model.insert(values);
-      };
+      wrappedInsert = (values) => ({
+        func: () => model.insert(values),
+      });
       queries = [
         {
           name: 'foobar1',

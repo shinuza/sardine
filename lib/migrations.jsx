@@ -202,10 +202,11 @@ export default class Migrations extends EventEmitter {
     }
 
     const batch = migration[direction].files.map((file) => {
-      return () => {
-        const path = `${migration.name}/${direction}/${file.filename}`;
-        this.emit('stepApplied', path);
-        return this.model.query(file.contents.toString());
+      const path = `${migration.name}/${direction}/${file.filename}`;
+      this.emit('stepApplied', path);
+      return {
+        path,
+        func: () => this.model.query(file.contents.toString()),
       };
     });
 

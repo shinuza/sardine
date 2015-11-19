@@ -29,9 +29,9 @@ describe('SQLite3', () => {
       db = new SQLite3(config);
       model = new Model(config);
       model.driver = db;
-      wrappedInsert = (values) => {
-        return () => model.insert(values);
-      };
+      wrappedInsert = (values) => ({
+        func: () => model.insert(values),
+      });
       queries = [
         {
           name: 'foobar1',

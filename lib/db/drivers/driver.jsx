@@ -1,5 +1,5 @@
 import co from 'co';
-import { MissingDependency } from '../../errors';
+import { QueryError, MissingDependency } from '../../errors';
 
 export default class Driver {
 
@@ -71,7 +71,12 @@ export default class Driver {
     .then(() =>
       co(function* transactionQuery() {
         for(const query of queries) {
-          yield query();
+          try {
+            yield query.func();
+          }
+          catch(e) {
+            throw new QueryError(e, query);
+          }
         }
         return Promise.resolve(true);
       })

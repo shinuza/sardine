@@ -61,6 +61,15 @@ class EmptyBatchError extends Error {
   }
 }
 
+class QueryError extends Error {
+  constructor(e, query) {
+    super();
+    this.query = query;
+    this.code = e.code;
+    this.message = `Query failed while running "${this.query.path || 'unknown' }":\n${e.message}`;
+  }
+}
+
 const PG = {
   SYNTAX_ERROR: '42601',
   UNDEFINED_TABLE: '42P01',
@@ -74,6 +83,7 @@ const SQLITE = {
 
 export default {
   IntegrityError,
+  QueryError,
   MigrationNotFound,
   MissingDependency,
   MissingConfiguration,

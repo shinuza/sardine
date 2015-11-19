@@ -1,6 +1,6 @@
 import Sardine from '../../lib';
-import { EmptyBatchError } from '../../lib/errors';
-import { showInfo, showVerbose } from '../util';
+import { EmptyBatchError, QueryError } from '../../lib/errors';
+import { showError, showInfo, showVerbose } from '../util';
 
 export default function rollback(config, command) {
   const sardine = new Sardine(config);
@@ -16,5 +16,6 @@ export default function rollback(config, command) {
   });
 
   return sardine.down(!command.all)
+    .catch(QueryError, (e) => showError(e.message))
     .catch(EmptyBatchError, () => showInfo('Already at the earliest revision'));
 }
