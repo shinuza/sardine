@@ -15,8 +15,8 @@ export default class SQLite3Driver extends Driver {
       "checksum" TEXT NOT NULL
     );`;
 
-  constructor(configuration) {
-    super(configuration);
+  constructor(config) {
+    super(config);
   }
 
   connect() {
@@ -24,7 +24,7 @@ export default class SQLite3Driver extends Driver {
     const sqlite3 = this.getModule();
 
     return new Promise(function connectSQLite3(resolve, reject) {
-      const client = self.client = new sqlite3.Database(self.configuration.connection.path);
+      const client = self.client = new sqlite3.Database(self.config.connection.path);
       client.on('open', function onSQLite3Connect(err) {
         if(err) {
           return reject(err);

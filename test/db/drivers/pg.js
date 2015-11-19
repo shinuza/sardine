@@ -43,7 +43,7 @@ describe('Postgres', () => {
 
     beforeEach(() => {
       db = new Pg(config);
-      model = new Model(config);
+      model = new Model(db.config);
       model.driver = db;
       wrappedInsert = (values) => ({
         func: () => model.insert(values),

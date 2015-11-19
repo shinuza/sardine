@@ -7,8 +7,8 @@ export default class Driver {
 
   client = null;
 
-  constructor(configuration) {
-    this.configuration = configuration;
+  constructor(config) {
+    this.config = config;
   }
 
   connect() {
@@ -101,7 +101,11 @@ export default class Driver {
     return this.NAME;
   }
 
+  getTableName() {
+    return this.config.tableName;
+  }
+
   getCreateStatement() {
-    return this.CREATE_STATEMENT.replace('$$tableName$$', this.configuration.tableName);
+    return this.CREATE_STATEMENT.replace('$$tableName$$', this.getTableName(this.config.tableName));
   }
 }

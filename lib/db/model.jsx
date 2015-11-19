@@ -12,17 +12,18 @@ export default class Model {
     checksum: Types.String
   }
 
-  constructor(configuration) {
-    const { driver } = configuration;
+  constructor(config) {
+    const { driver } = config;
     const Driver = drivers[driver];
 
     if(!Driver) {
       throw new ReferenceError(`Unknown driver ${driver}`);
     }
 
-    this.configuration = configuration;
-    this.driver = new Driver(configuration);
+    this.driver = new Driver(config);
     this.typeWrapper = new Types.TypeWrapper(driver);
+    // If the configuration is customized by the driver we need these modifications
+    this.config = this.driver.config;
   }
 
   connect() {
@@ -55,7 +56,7 @@ export default class Model {
     return this.connect()
       .then(() => {
         return this.driver.query(
-          `INSERT INTO ${this.configuration.tableName} (name, applied, migration_time, checksum) VALUES (?, ?, ?, ?)`,
+          `INSERT INTO ${this.driver.getTableName()} (name, applied, migration_time, checksum) VALUES (?, ?, ?, ?)`,
           [
             this.typeWrapper.string(name).toSQL(),
             this.typeWrapper.boolean(applied).toSQL(),
@@ -69,29 +70,29 @@ export default class Model {
     const { name, applied } = values;
     return this.connect()
       .then(() =>
-        this.driver.query(`UPDATE ${this.configuration.tableName} SET applied = ? WHERE name = ?`, [applied, name]));
+        this.driver.query(`UPDATE ${this.driver.getTableName()} SET applied = ? WHERE name = ?`, [applied, name]));
   }
 
   findAllByName() {
     return this.connect()
-      .then(() => this.driver.query(`SELECT * FROM ${this.configuration.tableName} ORDER BY name`));
+      .then(() => this.driver.query(`SELECT * FROM ${this.driver.getTableName()} ORDER BY name`));
   }
 
   countAll() {
     return this.connect()
-      .then(() => this.driver.query(`SELECT COUNT(*) AS count FROM ${this.configuration.tableName}`))
+      .then(() => this.driver.query(`SELECT COUNT(*) AS count FROM ${this.driver.getTableName()}`))
       .then(([res]) => res.count);
   }
 
   dropTable() {
     return this.connect()
-      .then(() => this.driver.query(`DROP TABLE ${this.configuration.tableName}`));
+      .then(() => this.driver.query(`DROP TABLE ${this.driver.getTableName()}`));
   }
 
   findLastAppliedMigrations(limit) {
     return this.connect()
       .then(() => {
-        let query = `SELECT * FROM ${this.configuration.tableName} WHERE applied = true ORDER BY migration_time DESC`;
+        let query = `SELECT * FROM ${this.driver.getTableName()} WHERE applied = true ORDER BY migration_time DESC`;
         if(limit) {
           query = query + ` LIMIT 1`;
         }

@@ -2,12 +2,16 @@ import Promise from 'bluebird';
 
 import Driver from './driver';
 
+const SCHEMA_NAME = 'migrations';
+
 export default class Pg extends Driver {
 
   NAME = 'pg';
 
   CREATE_STATEMENT =
-    `CREATE TABLE IF NOT EXISTS $$tableName$$ (
+    `
+    CREATE SCHEMA IF NOT EXISTS ${SCHEMA_NAME};
+    CREATE TABLE IF NOT EXISTS $$tableName$$ (
       id serial PRIMARY KEY,
       name character varying(255) not null,
       applied boolean not null,
@@ -15,14 +19,14 @@ export default class Pg extends Driver {
       checksum text not null
     );`;
 
-  constructor(configuration) {
-    super(configuration);
+  constructor(config) {
+    super(config);
   }
 
   connect() {
     const self = this;
     const pg = this.getModule();
-    const client = this.client = new pg.Client(this.configuration.connection);
+    const client = this.client = new pg.Client(this.config.connection);
 
     return new Promise(function connectPg(resolve, reject) {
       client.connect(function onPgConnect(err) {
@@ -60,5 +64,9 @@ export default class Pg extends Driver {
 
   result({ rows }) {
     return rows;
+  }
+
+  getTableName() {
+    return `${SCHEMA_NAME}.${super.getTableName()}`;
   }
 }
