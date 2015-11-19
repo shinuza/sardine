@@ -7,6 +7,56 @@ import { pgRawQuery } from '../helpers';
 describe('pg-migrations', () => {
   let migrations;
   const config = require('../../testConfig/pg');
+  const testBatch = [
+    {
+      name: 'v1',
+      checksum: 'v1_checksum',
+      steps: 3,
+      up: {
+        files: [
+          { filename: '01_foo.sql', contents: 'CREATE TABLE foo1(id integer PRIMARY KEY);' },
+          {
+            filename: '02_foo.sql',
+            contents: `
+              CREATE TABLE foo2(
+                id integer PRIMARY KEY,
+                foo2onfoo1 integer REFERENCES foo1(id)
+              );`,
+          },
+          {
+            filename: '03_foo.sql',
+            contents: `
+              CREATE TABLE foo3(
+                id serial NOT NULL,
+                foo3onfoo2 integer REFERENCES foo2(id)
+              );`,
+          },
+        ],
+      },
+      down: {
+        files: [
+          { filename: '01_foo.sql', contents: 'DROP TABLE foo1;' },
+          { filename: '02_foo.sql', contents: 'DROP TABLE foo2;' },
+          { filename: '03_foo.sql', contents: 'DROP TABLE foo3;' },
+        ],
+      },
+    },
+    {
+      name: 'v2',
+      checksum: 'v2_checksum',
+      steps: 1,
+      up: {
+        files: [
+          { filename: '04_foo.sql', contents: 'CREATE TABLE foo4(id serial NOT NULL);' },
+        ],
+      },
+      down: {
+        files: [
+          { filename: '04_foo.sql', contents: 'DROP TABLE foo4;' },
+        ],
+      },
+    },
+  ];
 
   before((done) => {
     pgRawQuery(`CREATE DATABASE ${config.connection.database}`, done);
@@ -34,32 +84,9 @@ describe('pg-migrations', () => {
 
     it('should create the given tables', (done) => {
       migrations = new Migrations(config);
-      const batch = [
-        {
-          name: 'v1',
-          checksum: 'v1_checksum',
-          steps: 3,
-          up: {
-            files: [
-                { filename: '01_foo.sql', contents: 'CREATE TABLE foo1(id serial NOT NULL);' },
-                { filename: '02_foo.sql', contents: 'CREATE TABLE foo2(id serial NOT NULL);' },
-                { filename: '03_foo.sql', contents: 'CREATE TABLE foo3(id serial NOT NULL);' },
-            ],
-          },
-        },
-        {
-          name: 'v2',
-          checksum: 'v2_checksum',
-          steps: 1,
-          up: {
-            files: [
-              { filename: '04_foo.sql', contents: 'CREATE TABLE foo4(id serial NOT NULL);' },
-            ],
-          },
-        },
-      ];
-      migrations.discovered = batch;
-      migrations.up({ batch, recorded: [] })
+
+      migrations.discovered = testBatch;
+      migrations.up({ batch: testBatch, recorded: [] })
         .then(() => migrations.model.driver.query('SELECT 1 from foo1, foo2, foo3, foo4'))
         .then(() => done())
         .catch(done);
@@ -104,30 +131,26 @@ describe('pg-migrations', () => {
       }, errors.EmptyBatchError);
     });
 
-    it('should revert the latest migration', (done) => {
+    it('should revert the latest migration', () => {
       migrations = new Migrations(config);
-      const batch = [
-        {
-          name: 'v2',
-          checksum: 'v2_checksum',
-          steps: 1,
-          down: {
-            files: [
-              { filename: '04_foo.sql', contents: 'DROP TABLE foo4;' },
-            ],
-          },
-        },
-      ];
-      migrations.discovered = batch;
-      migrations.down({ batch, recorded: [{ name: 'v1' }, { name: 'v2' }] })
+      migrations.discovered = testBatch;
+      return migrations
+        .down({
+          batch: testBatch,
+          recorded: [
+            { name: 'v1', checksum: 'v1_checksum' },
+            { name: 'v2', checksum: 'v2_checksum' },
+          ],
+        })
         .then(() => migrations.model.driver.query('SELECT 1 from foo4'))
         .then(() => {
-          done(new Error('Did not revert latest migrations'));
+          throw new Error('Did not revert latest migration');
         })
         .catch((e) => {
           assert.notEqual(e, void 0);
-          assert.equal(e.code, '42P01');
-          done();
+          assert.notEqual(e.code, void 0, e.message);
+          assert.notEqual(e.code, errors.PG.DEPENDENT_OBJECTS_STILL_EXIST, 'Dependent objects were not removed');
+          assert.equal(e.code, errors.PG.UNDEFINED_TABLE);
         });
     });
   });

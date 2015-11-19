@@ -192,6 +192,7 @@ export default class Migrations extends EventEmitter {
 
   applyOne({ migration, recorded, direction }) {
     this.emit('applyOne', migration);
+    const steps = migration[direction];
     const known = _.find(recorded, (rm) => rm.name === migration.name);
 
     if(!this._isLatest(migration) && known) {
@@ -201,7 +202,11 @@ export default class Migrations extends EventEmitter {
       }
     }
 
-    const batch = migration[direction].files.map((file) => {
+    if(direction === 'down') {
+      steps.files.reverse();
+    }
+
+    const batch = steps.files.map((file) => {
       const path = `${migration.name}/${direction}/${file.filename}`;
       this.emit('stepApplied', path);
       return {
