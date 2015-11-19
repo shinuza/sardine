@@ -5,7 +5,7 @@
   "main": "dist/lib/index.js",
   "scripts": {
     "test": "mocha --recursive --compilers jsx:babel/register",
-    "lint": "eslint lib/*.jsx bin/**/*.jsx test/**/*.js --max-warnings 0",
+    "lint": "eslint lib/**/*.jsx bin/**/*.jsx test/**/*.js --max-warnings 0",
     "prepublish": "sh prepublish.sh",
     "clean": "rm -rf dist/ && mkdir dist",
     "compile-bin": "babel bin --out-dir dist/bin -x \".jsx\"",

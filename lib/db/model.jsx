@@ -50,7 +50,7 @@ export default class Model {
   }
 
   insert(values) {
-    const { name, applied, migration_time, checksum } = values; // eslint-disable camelCase
+    const { name, applied, migration_time, checksum } = values; // eslint-disable-line camelcase
 
     return this.connect()
       .then(() => {
