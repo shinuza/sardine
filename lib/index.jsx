@@ -70,4 +70,20 @@ export default class Sardine {
       })
       .finally(this.migrations.destroy);
   }
+
+  on(...args) {
+    this.migrations.on(...args);
+  }
+
+  off(...args) {
+    this.migrations.off(...args);
+  }
+
+  once(...args) {
+    this.migrations.once(...args);
+  }
+
+  emit(...args) {
+    this.migrations.emit(...args);
+  }
 }
