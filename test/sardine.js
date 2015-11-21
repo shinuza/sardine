@@ -1,6 +1,6 @@
 import assert from 'assert';
 import fs from 'fs';
-import { resolve } from 'path';
+import { resolve, join } from 'path';
 
 import co from 'co';
 import Promise from 'bluebird';
@@ -9,6 +9,7 @@ import mkdirp from 'mkdirp';
 
 import Sardine from '../lib/';
 import config from './testConfig/pg';
+import { events } from '../lib/events';
 import { snake } from '../lib/date';
 import { twoDigits } from '../lib/util';
 import { pgRawQuery } from './db/helpers';
@@ -30,15 +31,15 @@ describe('Sardine', () => {
   const { directory } = config;
   const steps = ['foo', 'bar', 'baz', 'buzz', 'fizz', 'buzz', 'fizzbuzz'];
 
-  before(() => mkdirpAsync(directory));
-  after(() => rmrfAsync(directory));
+  before('Creating migration directory', () => mkdirpAsync(directory));
+  after('Removing migration directory', () => rmrfAsync(directory));
 
-  before((done) => {
+  before('Creating test database', (done) => {
     pgRawQuery(`CREATE DATABASE ${config.connection.database}`, done);
   });
 
-  after((done) => {
-    pgRawQuery(`DROP DATABASE ${config.connection.database}`, done);
+  after('Droping test database', (done) => {
+    pgRawQuery(`DROP DATABASE IF EXISTS ${config.connection.database}`, done);
   });
 
   describe('#create()', () => {
@@ -47,13 +48,24 @@ describe('Sardine', () => {
       const dirs = ['', 'up', 'down'];
       const date = new Date(2015, 11, 9, 1, 3, 20);
       const expectedDir = migrationDir(date, 'foobar');
+      const eventsParameters = [];
+
+      function recordEvent(...args) {
+        eventsParameters.push(args);
+      }
+
+      sardine.on(events.CREATED_MIGRATION_DIRECTORY, recordEvent);
+      sardine.on(events.CREATED_DIRECTION_DIRECTORY, recordEvent);
 
       return sardine.create(date, 'foobar').then(() =>
         co(function* checkDirectories() {
           for(const dir of dirs) {
             yield statAsync(resolve(directory, expectedDir, dir));
           }
-        }));
+        }))
+        .then(() => {
+          assert.deepEqual(eventsParameters, dirs.map((dir) => [join(expectedDir, dir)]));
+        });
     });
   });
 
@@ -64,6 +76,11 @@ describe('Sardine', () => {
       const expectedDir = migrationDir(date, 'foobar');
       const upDir = resolve(directory, expectedDir, 'up');
       const downDir = resolve(directory, expectedDir, 'down');
+      const eventsParameters = [];
+
+      sardine.on(events.STEP_FILE_CREATED, (file) => {
+        eventsParameters.push(file);
+      });
 
       return sardine.step('foobar', steps).then(() =>
         co(function* checkSteps() {
@@ -72,7 +89,16 @@ describe('Sardine', () => {
             yield statAsync(resolve(upDir, filename));
             yield statAsync(resolve(downDir, filename));
           }
-        }));
+        }))
+        .then(() => {
+          const expected = ['up', 'down'].reduce((acc, direction) => {
+            steps.forEach((step, index) => {
+              acc.push(join(expectedDir, direction, stepFilename(index, step)));
+            });
+            return acc;
+          }, []);
+          assert.deepEqual(eventsParameters, expected);
+        });
     });
   });
 

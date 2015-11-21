@@ -6,6 +6,7 @@ import Promise from 'bluebird';
 import co from 'co';
 import _ from 'lodash';
 
+import { events } from './events';
 import * as filters from './filters';
 import { snake } from './date';
 import { SARDINE_CONFIG } from './config';
@@ -42,11 +43,11 @@ export default class Migrations extends EventEmitter {
 
   init(config, cwd) {
     return config
-      .then(() => this.emit('init:noop'))
+      .then(() => this.emit(events.INIT_NOOP))
       .catch(MissingConfiguration, () => {
         const path = resolve(cwd, SARDINE_CONFIG);
         return fs.writeFileAsync(path, CONFIG_TEMPLATE)
-          .then(() => this.emit('init:success'));
+          .then(() => this.emit(events.INIT_SUCCESS));
       });
   }
 
@@ -176,6 +177,8 @@ export default class Migrations extends EventEmitter {
   }
 
   applyBatch({ batch, recorded, direction }) {
+    this.emit(events.APPLY_BATCH);
+
     const self = this;
 
     if(batch.length === 0) {
@@ -185,13 +188,14 @@ export default class Migrations extends EventEmitter {
     return this.model.connect()
       .then(() => co(function* apply() {
         for (const migration of batch) {
-          yield self.applyOne({ migration, recorded, direction });
+          yield self.applyMigration({ migration, recorded, direction });
         }
       }));
   }
 
-  applyOne({ migration, recorded, direction }) {
-    this.emit('applyOne', migration);
+  applyMigration({ migration, recorded, direction }) {
+    this.emit(events.APPLY_MIGRATION, migration);
+
     const steps = migration[direction];
     const known = _.find(recorded, (rm) => rm.name === migration.name);
 
@@ -208,7 +212,7 @@ export default class Migrations extends EventEmitter {
 
     const batch = steps.files.map((file) => {
       const path = `${migration.name}/${direction}/${file.filename}`;
-      this.emit('stepApplied', path);
+      this.emit(events.APPLY_STEP, path);
       return {
         path,
         func: () => this.model.query(file.contents.toString()),

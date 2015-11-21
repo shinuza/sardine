@@ -5,6 +5,7 @@ import co from 'co';
 import mkdirp from 'mkdirp';
 import Promise from 'bluebird';
 
+import { events } from './events';
 import Migrations from './migrations';
 import errors from './errors';
 
@@ -42,13 +43,13 @@ export default class Sardine {
         const paths = this.migrations.create(date, suffix);
         const { directory } = this.config;
 
-        this.migrations.emit('directoryCreated:migration', paths.rootDir);
+        this.emit(events.CREATED_MIGRATION_DIRECTORY, paths.rootDir);
         mkdirp.sync(resolve(directory));
 
-        this.migrations.emit('directoryCreated:direction', paths.up);
+        this.emit(events.CREATED_DIRECTION_DIRECTORY, paths.up);
         mkdirp.sync(resolve(directory, paths.up));
 
-        this.migrations.emit('directoryCreated:direction', paths.down);
+        this.emit(events.CREATED_DIRECTION_DIRECTORY, paths.down);
         mkdirp.sync(resolve(directory, paths.down));
 
       }).finally(this.migrations.destroy);
@@ -60,7 +61,7 @@ export default class Sardine {
         const { directory } = this.config;
         const paths = this.migrations.step(migrationName, suffixes);
         const onStepCreated = (path) =>
-          () => this.migrations.emit('fileCreated:step', path);
+          () => this.emit(events.STEP_FILE_CREATED, path);
 
         return co(function* createStepFile() {
           for(const path of paths) {
