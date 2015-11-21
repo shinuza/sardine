@@ -56,6 +56,7 @@
     "commander": "^2.9.0",
     "lodash": "^3.10.1",
     "mkdirp": "^0.5.1",
+    "rimraf": "^2.4.4",
     "source-map-support": "^0.3.2"
   },
   "devDependencies": {
