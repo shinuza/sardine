@@ -239,19 +239,18 @@ export default class Migrations extends EventEmitter {
 
   static checkIntegrity(ups, downs, name) {
     _.zip(ups, downs).forEach(([up, down]) => {
-      const upFilename = up.filename;
-      const downFilename = down.filename;
-
       if(!down) {
         throw new IntegrityError(
-          `${name}/up/${upFilename} has no "down" counterpart, this migration cannot be applied.`);
+          `${name}/up/${up.filename} has no "down" counterpart, this migration cannot be applied.`);
       }
 
       if(!up) {
         throw new IntegrityError(
-          `${name}/down/${downFilename} has no "up" counterpart, this migration cannot be applied.`);
+          `${name}/down/${down.filename} has no "up" counterpart, this migration cannot be applied.`);
       }
 
+      const upFilename = up.filename;
+      const downFilename = down.filename;
       if(downFilename !== upFilename) {
         throw new IntegrityError(
            `${downFilename} and ${upFilename} should have the same filename`);

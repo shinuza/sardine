@@ -26,13 +26,13 @@ describe('Migrations', () => {
   describe('@checkIntegrity', () => {
     it('it should detect missing down', () => {
       assert.throws(() => {
-        Migrations.checkIntegrity([{ filename: 1 }, { filename: 2 }], [{ filename: 2 }]);
+        Migrations.checkIntegrity([{ filename: 'foo.sql' }, { filename: 'bar.sql' }], [{ filename: 'foo.sql' }, void 0]);
       }, errors.IntegrityError);
     });
 
     it('it should detect missing up', () => {
       assert.throws(() => {
-        Migrations.checkIntegrity([{ filename: 2 }], [{ filename: 1 }, { filename: 2 }]);
+        Migrations.checkIntegrity([{ filename: 2 }, void 0], [{ filename: 1 }, { filename: 2 }]);
       }, errors.IntegrityError);
     });
 
