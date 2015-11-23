@@ -5,7 +5,7 @@ import co from 'co';
 import mkdirp from 'mkdirp';
 import Promise from 'bluebird';
 
-import { events } from './events';
+import { events, handlers } from './events';
 import Migrations from './migrations';
 import errors from './errors';
 
@@ -16,6 +16,7 @@ export default class Sardine {
   constructor(config) {
     this.config = config;
     this.migrations = new Migrations(config);
+    Object.assign(this, handlers);
   }
 
   init(config, cwd) {
