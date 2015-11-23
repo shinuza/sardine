@@ -6,6 +6,7 @@ import Promise from 'bluebird';
 
 import Migrations from '../lib/migrations';
 import errors from '../lib/errors';
+import { events } from '../lib/events';
 import { SARDINE_CONFIG } from '../lib/config';
 import config from './testConfig/sqlite3';  // It doesn't matter, really
 
@@ -68,7 +69,7 @@ describe('Migrations', () => {
       const migrations = new Migrations(config);
       const p = Promise.reject(new errors.MissingConfiguration('Yup, it failed'));
 
-      migrations.on('init:success', () => {
+      migrations.on(events.INIT_SUCCESS, () => {
         assert(require(path.resolve(SANDBOX, SARDINE_CONFIG)) !== void 0);
         done();
       });
@@ -80,11 +81,11 @@ describe('Migrations', () => {
       const migrations = new Migrations(config);
       const p = Promise.resolve();
 
-      migrations.on('init:success', () => {
+      migrations.on(events.INIT_SUCCESS, () => {
         assert(false, 'Success was called');
         done();
       });
-      migrations.on('init:noop', done);
+      migrations.on(events.INIT_NOOP, done);
 
       migrations.init(p, SANDBOX).catch(done);
     });

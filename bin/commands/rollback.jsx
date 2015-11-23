@@ -1,19 +1,16 @@
 import Sardine from '../../lib';
 import { EmptyBatchError, QueryError } from '../../lib/errors';
-import { showError, showInfo, showVerbose } from '../util';
+import { showError, showInfo } from '../util';
+import { events } from '../../lib/events';
 
 export default function rollback(config, command) {
   const sardine = new Sardine(config);
 
-  sardine.migrations.on('applyOne', (m) => {
-    showInfo(`Rolling back "${m.name}"`);
-  });
+  sardine.on(events.APPLY_MIGRATION, sardine.onApplyMigrationDown);
 
-  sardine.migrations.on('step', (s) => {
-    if(command.parent.verbose) {
-      showVerbose(`Running "${s}"`);
-    }
-  });
+  if(command.parent.verbose) {
+    sardine.on(events.STEP_APPLIED, sardine.onStepApplied);
+  }
 
   return sardine.down(!command.all)
     .catch(QueryError, (e) => showError(e.message))

@@ -5,15 +5,23 @@ import co from 'co';
 import mkdirp from 'mkdirp';
 import Promise from 'bluebird';
 
+import { events } from './events';
 import Migrations from './migrations';
 import errors from './errors';
 
 const writeFileAsync = Promise.promisify(writeFile);
 
 export default class Sardine {
+
   constructor(config) {
     this.config = config;
     this.migrations = new Migrations(config);
+  }
+
+  init(config, cwd) {
+    return this.migrations
+      .init(config, cwd)
+      .then(this.migrations.destroy);
   }
 
   up() {
@@ -42,13 +50,13 @@ export default class Sardine {
         const paths = this.migrations.create(date, suffix);
         const { directory } = this.config;
 
-        this.migrations.emit('directoryCreated:migration', paths.rootDir);
+        this.emit(events.CREATED_MIGRATION_DIRECTORY, paths.rootDir);
         mkdirp.sync(resolve(directory));
 
-        this.migrations.emit('directoryCreated:direction', paths.up);
+        this.emit(events.CREATED_DIRECTION_DIRECTORY, paths.up);
         mkdirp.sync(resolve(directory, paths.up));
 
-        this.migrations.emit('directoryCreated:direction', paths.down);
+        this.emit(events.CREATED_DIRECTION_DIRECTORY, paths.down);
         mkdirp.sync(resolve(directory, paths.down));
 
       }).finally(this.migrations.destroy);
@@ -60,7 +68,7 @@ export default class Sardine {
         const { directory } = this.config;
         const paths = this.migrations.step(migrationName, suffixes);
         const onStepCreated = (path) =>
-          () => this.migrations.emit('fileCreated:step', path);
+          () => this.emit(events.STEP_FILE_CREATED, path);
 
         return co(function* createStepFile() {
           for(const path of paths) {
@@ -69,5 +77,21 @@ export default class Sardine {
         });
       })
       .finally(this.migrations.destroy);
+  }
+
+  on(...args) {
+    this.migrations.on(...args);
+  }
+
+  off(...args) {
+    this.migrations.off(...args);
+  }
+
+  once(...args) {
+    this.migrations.once(...args);
+  }
+
+  emit(...args) {
+    this.migrations.emit(...args);
   }
 }

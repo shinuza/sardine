@@ -1,17 +1,11 @@
-import { showError, showInfo, showWarning } from '../util';
-import Migrations from '../../lib/migrations';
-import { SARDINE_CONFIG } from '../../lib/config';
+import Sardine from '../../lib';
+import { events } from '../../lib/events';
 
 export default function init(config, cwd) {
-  const migrations = new Migrations();
+  const sardine = new Sardine();
 
-  migrations.on('init:noop', () => showWarning('Already initialized'));
-  migrations.on('init:success', () => showInfo(`Initialized current directory with ${SARDINE_CONFIG}`));
+  sardine.on(events.INIT_NOOP, sardine.onInitNoop);
+  sardine.on(events.INIT_SUCCESS, sardine.onInitSuccess);
 
-  return migrations
-    .init(config, cwd)
-    .catch((e) => {
-      showError(e.stack);
-    })
-    .then(migrations.destroy);
+  return sardine.init(config, cwd);
 }

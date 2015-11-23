@@ -1,18 +1,15 @@
 import Sardine from '../../lib';
 import { EmptyBatchError, QueryError } from '../../lib/errors';
-import { showError, showInfo, showVerbose } from '../util';
+import { showError, showInfo } from '../util';
+import { events } from '../../lib/events';
 
 export default function update(config, command) {
   const sardine = new Sardine(config);
 
-  sardine.migrations.on('applyOne', (m) => {
-    showInfo(`Applying "${m.name}"`);
-  });
+  sardine.on(events.APPLY_MIGRATION, sardine.onApplyMigrationUp);
 
   if(command.parent.verbose) {
-    sardine.migrations.on('stepApplied', (s) => {
-      showVerbose(`Running "${s}"`);
-    });
+    sardine.on(events.STEP_APPLIED, sardine.onStepApplied);
   }
 
   return sardine.up()

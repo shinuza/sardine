@@ -3,23 +3,37 @@
   A simple database agnostic migration tool.
 
   Supports:
-  
+
   - Postgres
   - Sqlite3
 
-## Installation
+### Installation
+
+Install the driver for your project
+
+```
+$ npm install sqlite3 --save
+```
+
+or
+
+```
+$ npm install pg --save
+```
+
+If you want to use the cli tool
 
 ```
 $ npm install sardine -g
 ```
 
-## Getting started
-
-Install the driver for your project
+If you want to use `Sardine`'s [API](#api).
 
 ```
-$ npm install sqlite3
+$ npm install sardine --save
 ```
+
+### Getting started
 
 Initialize a new sardine project
 
@@ -79,7 +93,7 @@ Sardine will **not**:
 
   - Check the consistency of your sql steps, it's your job to make sure a `down` step is the strict opposite of the `up` one
 
-## Usage
+### Usage
 
 ```
 Usage: sardine [options] [command]
@@ -102,7 +116,7 @@ Options:
 
 # API
 
-## config
+### config
 
 Sardine looks up for a `sardineConfig.js` file in the current directory.
 
@@ -117,11 +131,53 @@ Sardine looks up for a `sardineConfig.js` file in the current directory.
     password: '',
     database: 'postgres',
   },
-  path: '/usr/local/mybase.sqlite', // Only use for sqlite3
+  path: '/usr/local/mybase.sqlite', // Only used for sqlite3
 };
 ```
 
-## new Sardine(config)
+### migration
+
+A migration file looks something this.
+
+```javascript
+{
+  name: '20151209_010320_foobar',
+  up: {
+    files: [
+      {
+        filename: '01_foo.sql',
+        contents: 'CREATE TABLE foo1()',
+        checksum: ''
+      },
+      {
+        filename: '02_foo.sql',
+        contents: 'CREATE TABLE foo2()',
+        checksum: ''
+      },
+    ],
+    checksum: checksum(files)
+  },
+  down: {
+    files: [
+      {
+        filename: '01_foo.sql',
+        contents: 'DROP TABLE foo1',
+        checksum: ''
+      },
+      {
+        filename: '02_foo.sql',
+        contents: 'DROP TABLE foo2',
+        checksum: ''
+      },
+    ],
+    checksum: checksum(files)
+  },
+  steps: 2,
+  checksum: checksum(upSum, downSum),
+};
+```
+
+### new Sardine(config)
 
 Creates a new `Sardine` instance with `config`.
 
@@ -129,7 +185,7 @@ Creates a new `Sardine` instance with `config`.
 const sardine = new Sardine(config);
 ```
 
-## .create(date, suffix)
+### .create(date, suffix)
 
 Creates a sardine migration directory using `date` and `suffix`
 
@@ -142,7 +198,7 @@ sardine.create(date, suffix);
 // Creates 20151209_010320_foobar/down
 ```
 
-## .step(migrationName, [suffix1][, suffix2][, ...])
+### .step(migrationName, [suffix1][, suffix2][, ...])
 
 Fuzzy searches for a directory name `migrationName` and `suffix` step file in both up and down
 
@@ -155,7 +211,7 @@ sardine.step('foobar', ['foo', 'bar']);
 // Creates 20151209_010320_foobar/down/02_bar.sql
 ```
 
-## .up()
+### .up()
 
 Applies all migrations
 
@@ -164,7 +220,7 @@ const sardine = new Sardine(config);
 sardine.up();
 ```
 
-## .down(all)
+### .down(all)
 
 Rollbacks the latest migration, rollbacks everything if `all` is true.
 
@@ -172,6 +228,48 @@ Rollbacks the latest migration, rollbacks everything if `all` is true.
 const sardine = new Sardine(config);
 sardine.down();
 ```
+
+# events
+
+> The default event handlers (used in the CLI) can be found in `require('sardine/events').handlers`;
+
+### initNoop
+
+Fired when `Sardine#init()` was called but a `sardineConfig.js` file already exist in the current working directory.
+
+### initSuccess
+
+Fired when `Sardine#init()` was called and a `sardineConfig.js` file was created in the current working directory.
+
+### createdMigrationDirectory(dir)
+
+Fired when `Sardine#create()` was called and a new migration directory `dir` was created.
+
+### createdDirectionDirectory(dir)
+
+When `Sardine#create()` is called, this event is fired when `dir`/up and `dir`/down are created.
+
+### stepFileCreated(file)
+
+When `Sardine#step(migrationName, [suffix1][, suffix2][, ...])` was called, for each suffix this event is fired twice. Once for the update, and once for the rollback file.
+
+### applyBatch(batch, direction)
+
+Fired when `Sardine#up()` or `Sardine#down()` is called.
+
+- `batch` is a list of[`migration`](#migration) objects.
+- `direction` is either *"up"* or *"down"*.
+
+### applyMigration(migration, direction)
+
+Fired when `Sardine#up` or `Sardine#down()` is called.
+
+- `migration` is [`migration`](#migration) object.
+- `direction` is either *"up"* or *"down"*.
+
+### stepApplied(file)
+
+Fired each time a sql `file` is executed.
 
 # Code quality
 
@@ -184,7 +282,7 @@ $ npm test
 To lint the code:
 
 ```
-$ npm run-script lint
+$ npm run lint
 
 ```
 # License

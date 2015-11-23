@@ -1,14 +1,17 @@
 import Sardine from '../../lib';
-
-import { showInfo, showVerbose } from '../util';
+import { events } from '../../lib/events';
 
 export default function create(config, suffix, command) {
   const sardine = new Sardine(config);
 
-  sardine.migrations.on('directoryCreated:migration', (dir) => showInfo(`Created ${dir}`));
+  sardine.on(
+    events.CREATED_MIGRATION_DIRECTORY,
+    sardine.onCreatedMigrationDirectory);
 
   if(command.parent.verbose) {
-    sardine.migrations.on('directoryCreated:direction', (dir) => showVerbose(`Created ${dir}`));
+    sardine.on(
+      events.CREATED_DIRECTION_DIRECTORY,
+      sardine.onCratedDirectionDirectory);
   }
 
   return sardine.create(new Date(), suffix);
