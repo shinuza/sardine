@@ -177,7 +177,7 @@ export default class Migrations extends EventEmitter {
   }
 
   applyBatch({ batch, recorded, direction }) {
-    this.emit(events.APPLY_BATCH);
+    this.emit(events.APPLY_BATCH, batch, direction);
 
     const self = this;
 
@@ -194,7 +194,7 @@ export default class Migrations extends EventEmitter {
   }
 
   applyMigration({ migration, recorded, direction }) {
-    this.emit(events.APPLY_MIGRATION, migration);
+    this.emit(events.APPLY_MIGRATION, migration, direction);
 
     const steps = migration[direction];
     const known = _.find(recorded, (rm) => rm.name === migration.name);
