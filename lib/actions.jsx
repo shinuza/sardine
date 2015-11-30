@@ -4,7 +4,7 @@ import fs from 'fs';
 import _ from 'lodash';
 import Promise from 'bluebird';
 
-import { current } from './filters';
+import filters from './filters';
 import { twoDigits } from './util';
 import { MigrationNotFound, MissingConfiguration } from './errors';
 import { snake } from './date';
@@ -51,12 +51,24 @@ function step(discovered, migrationName, suffixes) {
   return paths;
 }
 
+function _isCurrent(currentMigration, name) {
+  if(currentMigration) {
+    return currentMigration.name === name;
+  }
+  return true;
+}
+
 function state(discovered, recorded) {
-  const currentMigration = current(discovered, recorded);
-  return discovered.map((m) => ({
-    name: m.name,
-    current: m.name === currentMigration.name,
-  }));
+  discovered = [{ name: 'initial', initial: true, current: true }].concat(discovered);
+  const currentMigration = filters.current(discovered, recorded);
+
+  return discovered.map(({ name, initial }) => {
+    return {
+      name,
+      current: _isCurrent(currentMigration, name),
+      initial: Boolean(initial),
+    };
+  });
 }
 
 export default {

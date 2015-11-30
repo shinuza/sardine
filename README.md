@@ -211,6 +211,54 @@ sardine.step('foobar', ['foo', 'bar']);
 // Creates 20151209_010320_foobar/down/02_bar.sql
 ```
 
+### .current(options)
+
+Returns the list of discovered migrations and applies `options.default` or `options.current` on each
+line depending on which migration is currently applied. The initial state output is defined by `options.initial`.
+
+Example:
+
+Given that we have three migrations, `foo`, `bar`, `baz`, but not is applied then:
+
+```javascript
+sardine.current({
+  initial: (n) => `${_.capitalize(n)} state`,
+  default: (n) => `default ${n}`,
+  current: (n) => `That's the current one: ${n}`,
+});
+```
+
+would yield:
+
+```javascript
+[
+  'That\'s the current one: Initial state',
+  'default 20151015_105530_foo',
+  'default 20151015_105534_bar',
+  'default 20151021_134514_baz'
+]
+```
+
+After calling `sardine.up()`, the same call would yield:
+
+```javascript
+[
+  'default Initial state',
+  'default 20151015_105530_foo',
+  'default 20151015_105534_bar',
+  'That\'s the current one: 20151021_134514_baz'
+]
+```
+
+```javascript
+const sardine = new Sardine(config);
+sardine.step('foobar', ['foo', 'bar']);
+// Creates 20151209_010320_foobar/up/01_foo.sql
+// Creates 20151209_010320_foobar/up/02_bar.sql
+// Creates 20151209_010320_foobar/down/01_foo.sql
+// Creates 20151209_010320_foobar/down/02_bar.sql
+```
+
 ### .up()
 
 Applies all migrations

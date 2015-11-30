@@ -1,6 +1,7 @@
 import { writeFile } from 'fs';
 import { resolve } from 'path';
 
+import _ from 'lodash';
 import co from 'co';
 import mkdirp from 'mkdirp';
 import Promise from 'bluebird';
@@ -79,6 +80,28 @@ class Sardine {
             yield writeFileAsync(resolve(directory, path), '') .then(onStepCreated(path));
           }
         });
+      })
+      .finally(this.migrations.destroy);
+  }
+
+  current(options) {
+    return Promise.all([this.finder.discover(), this.migrations.model.findAllByName()])
+      .then(([discovered, recorded]) => {
+        return actions.state(discovered, recorded)
+          .map((migration) => {
+            const fns = Object.assign({
+              default: _.identity,
+              initial: _.identity,
+              current: _.identity,
+            }, options);
+            const stack = [migration.current ? fns.current : fns.default];
+
+            if(migration.initial) {
+              stack.push(fns.initial);
+            }
+
+            return _.compose(...stack)(migration.name);
+          });
       })
       .finally(this.migrations.destroy);
   }

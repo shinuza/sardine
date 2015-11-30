@@ -16,7 +16,7 @@ function rollback(discovered, recorded) {
 
 function current(discovered, recorded) {
   const lastAppliedIndex = _.findLastIndex(recorded, (rm) => rm.applied === true);
-  return discovered[lastAppliedIndex === -1 ? 0 : lastAppliedIndex];
+  return discovered[lastAppliedIndex === -1 ? 0 : lastAppliedIndex + 1];
 }
 
 export default {

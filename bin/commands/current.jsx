@@ -1,25 +1,16 @@
-import { identity } from 'lodash';
+import _ from 'lodash';
 import { green } from 'colors/safe';
 
-import Migrations from '../../lib/migrations';
+import Sardine from '../../lib';
 
 function current(config) {
-  const migrations = new Migrations(config);
+  const sardine = new Sardine(config);
 
-  return Promise.all([migrations.discover(), migrations.model.findAllByName()])
-    .then(([discovered, recorded]) => {
-      const lines = migrations
-        .state(discovered, recorded)
-        .map((m) => {
-          const prefix = m.current ? '*' : ' ';
-          const fn = [identity, green][Number(m.current)];
-
-          return `${prefix} ${fn(m.name)}`;
-        });
-
-      console.log(lines.join('\n'));
-    })
-    .then(migrations.destroy);
+  return sardine.current({
+    default: (n) => `  ${n}`,
+    current: (n) => `* ${green(n)}`,
+    initial: (n) => `${_.capitalize(n)} state`,
+  }).then((entries) => console.log(entries.join('\n')));
 }
 
 export default current;

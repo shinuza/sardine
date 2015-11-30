@@ -2,6 +2,7 @@ import assert from 'assert';
 import fs from 'fs';
 import { resolve, join } from 'path';
 
+import _ from 'lodash';
 import co from 'co';
 import Promise from 'bluebird';
 import rimraf from 'rimraf';
@@ -211,7 +212,7 @@ describe('Sardine', () => {
           assert.equal(row.matching, '0');
         }
 
-        return sardine.down()
+        return sardine.down(true)
           .then(() => model.connect())
           .then(() =>
             co(function* checkMigrationsRolledback() {
@@ -225,5 +226,34 @@ describe('Sardine', () => {
       });
     });
 
+    describe('#current(options)', () => {
+      const currentOptions = {
+        initial: (n) => `${_.capitalize(n)} state`,
+        default: (n) => `default ${n}`,
+        current: (n) => `That's the current one: ${n}`,
+      };
+
+      it('should mark initial state as current', () => {
+        const sardine = new Sardine(config);
+
+        return sardine.current(currentOptions)
+        .then((entries) => assert.deepEqual(entries, [
+          'That\'s the current one: Initial state',
+          'default 20151209_010320_foobar',
+        ]));
+      });
+
+      it('should mark the latest migration as current, after we ran .up()', () => {
+        const sardine = new Sardine(config);
+        return co(function* updateAndState() {
+          yield sardine.up();
+          yield sardine.current(currentOptions)
+          .then((entries) => assert.deepEqual(entries, [
+            'default Initial state',
+            'That\'s the current one: 20151209_010320_foobar',
+          ]));
+        });
+      });
+    });
   });
 });
