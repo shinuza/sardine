@@ -9,15 +9,18 @@ import mkdirp from 'mkdirp';
 
 import Sardine from '../lib/';
 import config from './testConfig/pg';
+import { CONFIG_TEMPLATE, SARDINE_CONFIG } from '../lib/config';
+import { MigrationNotFound, MissingConfiguration, PendingMigrations } from '../lib/errors';
 import { events } from '../lib/events';
 import { snake } from '../lib/date';
 import { twoDigits } from '../lib/util';
-import { pgRawQuery } from './db/helpers';
 
+const readFileAsync = Promise.promisify(fs.readFile);
 const statAsync = Promise.promisify(fs.stat);
+const writeFileAsync = Promise.promisify(fs.writeFile);
 const rmrfAsync = Promise.promisify(rimraf);
 const mkdirpAsync = Promise.promisify(mkdirp);
-const writeFileAsync = Promise.promisify(fs.writeFile);
+const SANDBOX = resolve(__dirname, 'sandbox');
 
 function stepFilename(index, step) {
   return `${twoDigits(index + 1)}_${step}.sql`;
@@ -34,12 +37,44 @@ describe('Sardine', () => {
   before('Creating migration directory', () => mkdirpAsync(directory));
   after('Removing migration directory', () => rmrfAsync(directory));
 
-  before('Creating test database', (done) => {
-    pgRawQuery(`CREATE DATABASE ${config.connection.database}`, done);
-  });
+  describe('#init()', () => {
+    const sardineConfigPath = resolve(SANDBOX, SARDINE_CONFIG);
+    after('Removing sardine config file', () => rmrfAsync(sardineConfigPath));
 
-  after('Droping test database', (done) => {
-    pgRawQuery(`DROP DATABASE IF EXISTS ${config.connection.database}`, done);
+    it('should fire success event on creation', () => {
+      const sardine = new Sardine(config);
+      const promise = Promise.reject(new MissingConfiguration('Foobar'));
+      const eventsParameters = [];
+
+      function recordEvent() {
+        eventsParameters.push('called');
+      }
+
+      sardine.on(events.INIT_SUCCESS, recordEvent);
+
+      return sardine.init(promise, SANDBOX).then(() => {
+        assert.deepEqual(eventsParameters, ['called']);
+        return readFileAsync(sardineConfigPath)
+          .then((contents) => assert.deepEqual(contents.toString(), CONFIG_TEMPLATE));
+      });
+    });
+
+    it('should fire noop event when the file already exists', () => {
+      const sardine = new Sardine(config);
+      const promise = Promise.resolve();
+      const eventsParameters = [];
+
+      function recordEvent() {
+        eventsParameters.push('called');
+      }
+
+      sardine.on(events.INIT_NOOP, recordEvent);
+
+      return readFileAsync(sardineConfigPath)
+        .then((contents) => assert.deepEqual(contents.toString(), CONFIG_TEMPLATE))
+        .then(() => sardine.init(promise, SANDBOX))
+        .then(() => assert.deepEqual(eventsParameters, ['called']));
+    });
   });
 
   describe('#create()', () => {
@@ -66,6 +101,17 @@ describe('Sardine', () => {
         .then(() => {
           assert.deepEqual(eventsParameters, dirs.map((dir) => [join(expectedDir, dir)]));
         });
+    });
+
+    it('should fail since another pending migration exists', () => {
+      let hasThrown = false;
+      return new Sardine(config)
+        .create(new Date(), 'barbuz')
+        .catch((e) => {
+          assert.equal(e.constructor, PendingMigrations);
+          hasThrown = true;
+        })
+        .then(() => assert(hasThrown, 'As thrown'));
     });
   });
 
@@ -100,6 +146,17 @@ describe('Sardine', () => {
           assert.deepEqual(eventsParameters, expected);
         });
     });
+
+    it('should fail when the migration is unknown', () => {
+      let hasThrown = false;
+      return new Sardine(config)
+        .step('unknown', steps)
+        .catch((e) => {
+          assert.equal(e.constructor, MigrationNotFound);
+          hasThrown = true;
+        })
+        .then(() => assert(hasThrown));
+    });
   });
 
   describe('directions', () => {
@@ -129,7 +186,7 @@ describe('Sardine', () => {
     });
 
     describe('#up()', () => {
-      it('should apply the migration properly', (done) => {
+      it('should apply the migration properly', () => {
         const sardine = new Sardine(config);
         const model = sardine.migrations.model;
 
@@ -141,14 +198,12 @@ describe('Sardine', () => {
                 yield model.query(`SELECT 1 FROM foo${i}`);
               }
             }))
-          .catch(done)
-          .then(() => model.disconnect())
-          .then(() => done());
+          .finally(() => model.disconnect());
       });
     });
 
     describe('#down()', () => {
-      it('should rollback the migration properly', (done) => {
+      it('should rollback the migration properly', () => {
         const sardine = new Sardine(config);
         const model = sardine.migrations.model;
 
@@ -166,9 +221,7 @@ describe('Sardine', () => {
                   .then(tableDoesntExist);
               }
             }))
-          .catch(done)
-          .then(() => model.disconnect())
-          .then(() => done());
+          .finally(() => model.disconnect());
       });
     });
 

@@ -2,7 +2,7 @@ import Promise from 'bluebird';
 
 import Driver from './driver';
 
-export default class SQLite3Driver extends Driver {
+class SQLite3Driver extends Driver {
 
   NAME = 'sqlite3';
 
@@ -38,3 +38,5 @@ export default class SQLite3Driver extends Driver {
     });
   }
 }
+
+export default SQLite3Driver;

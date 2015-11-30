@@ -4,23 +4,16 @@ import config from '../../testConfig/pg';
 import errors from '../../../lib/errors';
 import Pg from '../../../lib/db/drivers/pg';
 import Model from '../../../lib/db/model';
-import { pgRawQuery } from '../helpers';
 
 describe('Postgres', () => {
   let db;
 
-  before((done) => {
-    pgRawQuery(`CREATE DATABASE ${config.connection.database}`, done);
-  });
-
-  after((done) => {
+  after(() => {
     let p = Promise.resolve();
     if(db.connected()) {
       p = db.disconnect();
     }
-
-    p.then(() => pgRawQuery(`DROP DATABASE ${config.connection.database}`, done))
-      .catch(done);
+    return p;
   });
 
   describe('#disconnect()', () => {

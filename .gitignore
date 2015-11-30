@@ -1,5 +1,5 @@
 node_modules
-migrations
 sardineConfig.js
 dist
 npm-debug.log
+sardine_migrations

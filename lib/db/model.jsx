@@ -1,9 +1,9 @@
 import Promise from 'bluebird';
 
-import * as Types from './types';
+import Types from './types';
 import drivers from './drivers';
 
-export default class Model {
+class Model {
 
   fields: {
     name: Types.String,
@@ -99,5 +99,6 @@ export default class Model {
         return this.driver.query(query);
       });
   }
-
 }
+
+export default Model;

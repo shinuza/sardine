@@ -4,7 +4,6 @@ import { SARDINE_CONFIG } from './config';
 import { showInfo, showVerbose, showWarning } from '../bin/util';
 
 const events = {};
-
 const handlers = {
   onCreatedMigrationDirectory: (dir) => showInfo(`Created "${dir}"`),
   onCratedDirectionDirectory: (dir) => showVerbose(`Created "${dir}"`),
@@ -27,4 +26,7 @@ const handlers = {
   'STEP_FILE_CREATED',
 ].forEach((e) => events[e] = _.camelCase(e));
 
-export { handlers, events };
+export default {
+  handlers,
+  events,
+};

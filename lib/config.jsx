@@ -6,9 +6,21 @@ import Promise from 'bluebird';
 
 import { MissingConfiguration, UndefinedConfiguration } from '../lib/errors';
 
-export const SARDINE_CONFIG = 'sardineConfig.js';
+const SARDINE_CONFIG = 'sardineConfig.js';
+const CONFIG_TEMPLATE = `module.exports = {
+  directory:  'migrations',
+  tableName:  'sardine_migrations',
+  driver:     'pg',
+  connection: {
+    host:     'localhost',
+    user:     'postgres',
+    password: 'postgres',
+    database: 'postgres'
+  }
+};
+`;
 
-export function checkKeys(conf, requestedKeys) {
+function checkKeys(conf, requestedKeys) {
   const filteredKeys = _.keys(_.pick(conf, ...requestedKeys));
   const missingKeys = _.difference(requestedKeys, filteredKeys);
 
@@ -17,7 +29,7 @@ export function checkKeys(conf, requestedKeys) {
   }
 }
 
-export function config(keys) {
+function config(keys) {
   const configPath = resolve(process.cwd(), SARDINE_CONFIG);
   return new Promise((res, rej) => {
     stat(configPath, (err) => {
@@ -33,3 +45,10 @@ export function config(keys) {
     });
   });
 }
+
+export default {
+  CONFIG_TEMPLATE,
+  SARDINE_CONFIG,
+  checkKeys,
+  config,
+};

@@ -4,7 +4,7 @@
   "description": "A simple database agnostic migration tool.",
   "main": "dist/lib/index.js",
   "scripts": {
-    "test": "mocha --recursive --compilers jsx:babel/register",
+    "test": "sh test.sh",
     "lint": "eslint lib/**/*.jsx bin/**/*.jsx test/**/*.js --max-warnings 0",
     "prepublish": "sh prepublish.sh",
     "clean": "rm -rf dist/ && mkdir dist",

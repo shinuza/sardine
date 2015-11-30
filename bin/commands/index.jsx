@@ -12,14 +12,23 @@ function command(fn, configKeys) {
   };
 }
 
-export const init = () => require('./init')(config(), process.cwd());
+const init = () => require('./init')(config(), process.cwd());
 
-export const create = command(require('./create'), ['directory']);
+const create = command(require('./create'), ['directory']);
 
-export const current = command(require('./current'), ['directory']);
+const current = command(require('./current'), ['directory']);
 
-export const rollback = command(require('./rollback'), ['directory']);
+const rollback = command(require('./rollback'), ['directory']);
 
-export const step = command(require('./step'), ['directory']);
+const step = command(require('./step'), ['directory']);
 
-export const update = command(require('./update'), ['directory']);
+const update = command(require('./update'), ['directory']);
+
+export default {
+  init,
+  create,
+  current,
+  rollback,
+  step,
+  update,
+};

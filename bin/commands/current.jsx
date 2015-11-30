@@ -3,7 +3,7 @@ import { green } from 'colors/safe';
 
 import Migrations from '../../lib/migrations';
 
-export default function current(config) {
+function current(config) {
   const migrations = new Migrations(config);
 
   return Promise.all([migrations.discover(), migrations.model.findAllByName()])
@@ -21,3 +21,5 @@ export default function current(config) {
     })
     .then(migrations.destroy);
 }
+
+export default current;

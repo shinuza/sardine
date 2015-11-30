@@ -1,7 +1,7 @@
 import Sardine from '../../lib';
 import { events } from '../../lib/events';
 
-export default function init(config, cwd) {
+function init(config, cwd) {
   const sardine = new Sardine();
 
   sardine.on(events.INIT_NOOP, sardine.onInitNoop);
@@ -9,3 +9,5 @@ export default function init(config, cwd) {
 
   return sardine.init(config, cwd);
 }
+
+export default init;

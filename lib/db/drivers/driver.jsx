@@ -1,7 +1,7 @@
 import co from 'co';
 import { QueryError, MissingDependency } from '../../errors';
 
-export default class Driver {
+class Driver {
 
   _connected = null;
 
@@ -109,3 +109,5 @@ export default class Driver {
     return this.CREATE_STATEMENT.replace('$$tableName$$', this.getTableName(this.config.tableName));
   }
 }
+
+export default Driver;

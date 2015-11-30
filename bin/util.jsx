@@ -10,10 +10,17 @@ function show(tag, mode, color) {
   };
 }
 
-export const showError = show('ERRO', 'error', 'red');
+const showError = show('ERRO', 'error', 'red');
 
-export const showWarning = show('WARN', 'warn', 'yellow');
+const showWarning = show('WARN', 'warn', 'yellow');
 
-export const showInfo = show('INFO', 'info', 'green');
+const showInfo = show('INFO', 'info', 'green');
 
-export const showVerbose = show('VERB', 'log', 'blue');
+const showVerbose = show('VERB', 'log', 'blue');
+
+export default {
+  showError,
+  showInfo,
+  showVerbose,
+  showWarning,
+};

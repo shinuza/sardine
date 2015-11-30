@@ -1,6 +1,6 @@
 import path from 'path';
 
-module.exports = {
+const config = {
   directory: path.resolve(__dirname, '..', 'sandbox', 'migrations'),
   tableName: 'test_sardine_migrations',
   driver: 'pg',
@@ -11,3 +11,5 @@ module.exports = {
     database: 'test_sardine',
   },
 };
+
+export default config;

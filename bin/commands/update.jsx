@@ -3,7 +3,7 @@ import { EmptyBatchError, QueryError } from '../../lib/errors';
 import { showError, showInfo } from '../util';
 import { events } from '../../lib/events';
 
-export default function update(config, command) {
+function update(config, command) {
   const sardine = new Sardine(config);
 
   sardine.on(events.APPLY_MIGRATION, sardine.onApplyMigrationUp);
@@ -16,3 +16,5 @@ export default function update(config, command) {
     .catch(QueryError, (e) => showError(e.message))
     .catch(EmptyBatchError, () => showInfo('Everything already up to date'));
 }
+
+export default update;
