@@ -17,7 +17,7 @@ class BaseType {
   }
 }
 
-export class BooleanType extends BaseType {
+class BooleanType extends BaseType {
   default() {
     const self = this;
     return {
@@ -45,7 +45,7 @@ export class BooleanType extends BaseType {
   }
 }
 
-export class StringType extends BaseType {
+class StringType extends BaseType {
   default() {
     const self = this;
     return {
@@ -63,7 +63,7 @@ export class StringType extends BaseType {
   }
 }
 
-export class DateTimeType extends BaseType {
+class DateTimeType extends BaseType {
   default() {
     const self = this;
     return {
@@ -79,7 +79,7 @@ export class DateTimeType extends BaseType {
   }
 }
 
-export class TypeWrapper {
+class TypeWrapper {
   constructor(driver) {
     this.driver = driver;
 
@@ -88,3 +88,10 @@ export class TypeWrapper {
     this.boolean = (value) => new BooleanType(this.driver, value);
   }
 }
+
+export default {
+  BooleanType,
+  DateTimeType,
+  StringType,
+  TypeWrapper,
+};

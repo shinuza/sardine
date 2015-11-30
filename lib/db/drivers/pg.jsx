@@ -4,7 +4,7 @@ import Driver from './driver';
 
 const SCHEMA_NAME = 'migrations';
 
-export default class Pg extends Driver {
+class Pg extends Driver {
 
   NAME = 'pg';
 
@@ -70,3 +70,5 @@ export default class Pg extends Driver {
     return `${SCHEMA_NAME}.${super.getTableName()}`;
   }
 }
+
+export default Pg;

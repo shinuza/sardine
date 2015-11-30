@@ -11,7 +11,7 @@ import errors from './errors';
 
 const writeFileAsync = Promise.promisify(writeFile);
 
-export default class Sardine {
+class Sardine {
 
   constructor(config) {
     this.config = config;
@@ -96,3 +96,5 @@ export default class Sardine {
     this.migrations.emit(...args);
   }
 }
+
+export default Sardine;

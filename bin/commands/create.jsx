@@ -1,7 +1,7 @@
 import Sardine from '../../lib';
 import { events } from '../../lib/events';
 
-export default function create(config, suffix, command) {
+function create(config, suffix, command) {
   const sardine = new Sardine(config);
 
   sardine.on(
@@ -16,3 +16,5 @@ export default function create(config, suffix, command) {
 
   return sardine.create(new Date(), suffix);
 }
+
+export default create;

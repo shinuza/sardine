@@ -1,6 +1,7 @@
 import assert from 'assert';
 
-import * as util from '../lib/util.jsx';
+import util from '../lib/util.jsx';
+import errors from '../lib/errors';
 
 describe('Util', () => {
   describe('#twoDigits()', () => {

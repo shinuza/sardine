@@ -236,25 +236,6 @@ export default class Migrations extends EventEmitter {
   destroy() {
     return this.model && this.model.disconnect();
   }
-
-  static checkIntegrity(ups, downs, name) {
-    _.zip(ups, downs).forEach(([up, down]) => {
-      if(!down) {
-        throw new IntegrityError(
-          `${name}/up/${up.filename} has no "down" counterpart, this migration cannot be applied.`);
-      }
-
-      if(!up) {
-        throw new IntegrityError(
-          `${name}/down/${down.filename} has no "up" counterpart, this migration cannot be applied.`);
-      }
-
-      const upFilename = up.filename;
-      const downFilename = down.filename;
-      if(downFilename !== upFilename) {
-        throw new IntegrityError(
-           `${downFilename} and ${upFilename} should have the same filename`);
-      }
-    });
-  }
 }
+
+export default Migrations;

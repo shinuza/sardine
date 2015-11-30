@@ -3,7 +3,7 @@ import { EmptyBatchError, QueryError } from '../../lib/errors';
 import { showError, showInfo } from '../util';
 import { events } from '../../lib/events';
 
-export default function rollback(config, command) {
+function rollback(config, command) {
   const sardine = new Sardine(config);
 
   sardine.on(events.APPLY_MIGRATION, sardine.onApplyMigrationDown);
@@ -16,3 +16,5 @@ export default function rollback(config, command) {
     .catch(QueryError, (e) => showError(e.message))
     .catch(EmptyBatchError, () => showInfo('Already at the earliest revision'));
 }
+
+export default rollback;

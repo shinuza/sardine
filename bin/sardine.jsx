@@ -1,6 +1,6 @@
 import program from 'commander';
 
-import * as commands from './commands';
+import commands from './commands';
 
 program
   .version(require('../package.json').version)
