@@ -45,6 +45,7 @@ describe('Filters', () => {
   describe('#current', () => {
     it('should return the current migration', () => {
       const discovered = [
+        { name: 'initial', initial: true, current: true },
         { name: 'foo' },
         { name: 'bar' },
         { name: 'baz' },
@@ -58,8 +59,9 @@ describe('Filters', () => {
       assert.deepEqual(filters.current(discovered, recorded), expected);
     });
 
-    it('should return the first migration if none were applied', () => {
+    it('should return the initial migration if none were applied', () => {
       const discovered = [
+        { name: 'initial', initial: true, current: true },
         { name: 'foo' },
         { name: 'bar' },
         { name: 'baz' },
@@ -68,19 +70,20 @@ describe('Filters', () => {
         { name: 'foo', applied: false },
         { name: 'bar', applied: false },
       ];
-      const expected = { name: 'foo' };
+      const expected = { name: 'initial', current: true, initial: true };
 
       assert.deepEqual(filters.current(discovered, recorded), expected);
     });
 
     it('should return the first migration if none were recorded', () => {
       const discovered = [
+        { name: 'initial', initial: true, current: true },
         { name: 'foo' },
         { name: 'bar' },
         { name: 'baz' },
       ];
       const recorded = [];
-      const expected = { name: 'foo' };
+      const expected = { name: 'initial', current: true, initial: true };
 
       assert.deepEqual(filters.current(discovered, recorded), expected);
     });

@@ -72,6 +72,25 @@ describe('Actions', () => {
   });
 
   describe('#state(discovered, recorded)', () => {
+    it('should return only the initial state when no migrations exist', () => {
+      const discovered = [];
+      const recorded = [];
+
+      const state = actions.state(discovered, recorded);
+      assert.deepEqual(state, [{ name: 'initial', initial: true, current: true }]);
+    });
+
+    it('should return a list of migrations with the initial one marked as current when none were applied', () => {
+      const discovered = [{ name: '20150210_221003_foo' }];
+      const recorded = [{ name: '20150210_221003_foo', applied: false }];
+
+      const state = actions.state(discovered, recorded);
+      assert.deepEqual([
+        { name: 'initial', initial: true, current: true },
+        { name: '20150210_221003_foo', current: false, initial: false },
+      ], state);
+    });
+
     it('should return a list of discovered migrations indicating if they are the current one or not', () => {
       const discovered = [
         { name: '20150210_221003_foo' },
@@ -86,10 +105,11 @@ describe('Actions', () => {
 
       const state = actions.state(discovered, recorded);
       assert.deepEqual([
-        { name: '20150210_221003_foo', current: false },
-        { name: '20150210_221203_bar', current: true },
-        { name: '20150210_221003_buz', current: false },
-        { name: '20150210_221203_fizzbuzz', current: false },
+        { name: 'initial', current: false, initial: true },
+        { name: '20150210_221003_foo', current: false, initial: false },
+        { name: '20150210_221203_bar', current: true, initial: false },
+        { name: '20150210_221003_buz', current: false, initial: false },
+        { name: '20150210_221203_fizzbuzz', current: false, initial: false },
       ], state);
     });
   });
