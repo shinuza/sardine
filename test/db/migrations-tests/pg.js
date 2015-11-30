@@ -2,7 +2,6 @@ import assert from 'assert';
 
 import Migrations from '../../../lib/migrations.jsx';
 import errors from '../../../lib/errors.jsx';
-import { pgRawQuery } from '../helpers';
 
 describe('pg-migrations', () => {
   let migrations;
@@ -57,14 +56,6 @@ describe('pg-migrations', () => {
       },
     },
   ];
-
-  before((done) => {
-    pgRawQuery(`CREATE DATABASE ${config.connection.database}`, done);
-  });
-
-  after((done) => {
-    pgRawQuery(`DROP DATABASE ${config.connection.database}`, done);
-  });
 
   afterEach((done) => {
     let p = Promise.resolve();
