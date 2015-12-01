@@ -7,7 +7,7 @@ import Promise from 'bluebird';
 import filters from './filters';
 import { events } from './events';
 import { IntegrityError, EmptyBatchError } from './errors';
-import Finder from './finder.jsx';
+import Finder from './finder';
 import Model from './db/model';
 
 class Migrations extends EventEmitter {
