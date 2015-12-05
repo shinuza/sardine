@@ -137,7 +137,7 @@ Sardine looks up for a `sardineConfig.js` file in the current directory.
 
 ### migration
 
-A migration file looks something this.
+A `migration` Object looks something this.
 
 ```javascript
 {
