@@ -2,7 +2,6 @@ import { writeFile } from 'fs';
 import { resolve } from 'path';
 
 import _ from 'lodash';
-import co from 'co';
 import mkdirp from 'mkdirp';
 import Promise from 'bluebird';
 
@@ -75,11 +74,11 @@ class Sardine {
         const onStepCreated = (path) =>
           () => this.emit(events.STEP_FILE_CREATED, path);
 
-        return co(function* createStepFile() {
+        return Promise.coroutine(function* createStepFile() {
           for(const path of paths) {
             yield writeFileAsync(resolve(directory, path), '') .then(onStepCreated(path));
           }
-        });
+        })();
       })
       .finally(this.migrations.destroy);
   }
