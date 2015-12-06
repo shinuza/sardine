@@ -1,4 +1,6 @@
 import { createHash } from 'crypto';
+import { basename } from 'path';
+
 import _ from 'lodash';
 
 import { IntegrityError } from './errors';
@@ -25,8 +27,8 @@ function checkIntegrity(ups, downs, name) {
         `${name}/down/${down.filename} has no "up" counterpart, this migration cannot be applied.`);
     }
 
-    const upFilename = up.filename;
-    const downFilename = down.filename;
+    const upFilename = basename(up.filename);
+    const downFilename = basename(down.filename);
     if(downFilename !== upFilename) {
       throw new IntegrityError(
          `${downFilename} and ${upFilename} should have the same filename`);
