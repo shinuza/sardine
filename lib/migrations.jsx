@@ -1,7 +1,6 @@
 import EventEmitter from 'events';
 
 import _ from 'lodash';
-import co from 'co';
 import Promise from 'bluebird';
 
 import filters from './filters';
@@ -73,11 +72,11 @@ class Migrations extends EventEmitter {
     }
 
     return this.model.connect()
-      .then(() => co(function* apply() {
+      .then(() => Promise.coroutine(function* apply() {
         for (const migration of batch) {
           yield self.applyMigration({ migration, recorded, direction });
         }
-      }));
+      })());
   }
 
   applyMigration({ migration, recorded, direction }) {

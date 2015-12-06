@@ -1,4 +1,5 @@
-import co from 'co';
+import Promise from 'bluebird';
+
 import { QueryError, MissingDependency } from '../../errors';
 
 class Driver {
@@ -69,7 +70,7 @@ class Driver {
 
     return this.client.queryAsync('BEGIN')
     .then(() =>
-      co(function* transactionQuery() {
+      Promise.coroutine(function* transactionQuery() {
         for(const query of queries) {
           try {
             yield query.func();
@@ -79,7 +80,7 @@ class Driver {
           }
         }
         return Promise.resolve(true);
-      })
+      })()
     )
     .then(() => this.client.queryAsync('COMMIT'))
     .catch((e) => {

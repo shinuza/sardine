@@ -3,7 +3,6 @@ import fs from 'fs';
 import { resolve, join } from 'path';
 
 import _ from 'lodash';
-import co from 'co';
 import Promise from 'bluebird';
 import rimraf from 'rimraf';
 import mkdirp from 'mkdirp';
@@ -94,11 +93,11 @@ describe('Sardine', () => {
       sardine.on(events.CREATED_DIRECTION_DIRECTORY, recordEvent);
 
       return sardine.create(date, 'foobar').then(() =>
-        co(function* checkDirectories() {
+        Promise.coroutine(function* checkDirectories() {
           for(const dir of dirs) {
             yield statAsync(resolve(directory, expectedDir, dir));
           }
-        }))
+        })())
         .then(() => {
           assert.deepEqual(eventsParameters, dirs.map((dir) => [join(expectedDir, dir)]));
         });
@@ -130,13 +129,13 @@ describe('Sardine', () => {
       });
 
       return sardine.step('foobar', steps).then(() =>
-        co(function* checkSteps() {
+        Promise.coroutine(function* checkSteps() {
           for(let i = 0; i < steps.length; i = i + 1) {
             const filename = stepFilename(i, steps[i]);
             yield statAsync(resolve(upDir, filename));
             yield statAsync(resolve(downDir, filename));
           }
-        }))
+        })())
         .then(() => {
           const expected = ['up', 'down'].reduce((acc, direction) => {
             steps.forEach((step, index) => {
@@ -167,21 +166,21 @@ describe('Sardine', () => {
     const downDir = resolve(directory, expectedDir, 'down');
 
     before(() => {
-      const up = co(function* writeUpSteps() {
+      const up = Promise.coroutine(function* writeUpSteps() {
         for(let i = 0; i < steps.length; i = i + 1) {
           const filename = stepFilename(i, steps[i]);
           const sql = `CREATE TABLE foo${i}(id serial NOT NULL);`;
           yield writeFileAsync(resolve(upDir, filename), sql);
         }
-      });
+      })();
 
-      const down = co(function* writeDownSteps() {
+      const down = Promise.coroutine(function* writeDownSteps() {
         for(let i = 0; i < steps.length; i = i + 1) {
           const filename = stepFilename(i, steps[i]);
           const sql = `DROP TABLE foo${i};`;
           yield writeFileAsync(resolve(downDir, filename), sql);
         }
-      });
+      })();
 
       return Promise.all([up, down]);
     });
@@ -194,11 +193,11 @@ describe('Sardine', () => {
         return sardine.up()
           .then(() => model.connect())
           .then(() =>
-            co(function* checkMigrationsApplied() {
+            Promise.coroutine(function* checkMigrationsApplied() {
               for(let i = 0; i < steps.length; i = i + 1) {
                 yield model.query(`SELECT 1 FROM foo${i}`);
               }
-            }))
+            })())
           .finally(() => model.disconnect());
       });
     });
@@ -215,13 +214,13 @@ describe('Sardine', () => {
         return sardine.down(true)
           .then(() => model.connect())
           .then(() =>
-            co(function* checkMigrationsRolledback() {
+            Promise.coroutine(function* checkMigrationsRolledback() {
               for(let i = 0; i < steps.length; i = i + 1) {
                 yield model
                   .query(`SELECT COUNT (relname) as matching FROM pg_class WHERE relname = 'foo${i}'`)
                   .then(tableDoesntExist);
               }
-            }))
+            })())
           .finally(() => model.disconnect());
       });
     });
@@ -245,13 +244,13 @@ describe('Sardine', () => {
 
       it('should mark the latest migration as current, after we ran .up()', () => {
         const sardine = new Sardine(config);
-        return co(function* updateAndState() {
+        return Promise.coroutine(function* updateAndState() {
           yield sardine.up();
           yield sardine.current(currentOptions)
           .then((entries) => assert.deepEqual(entries, [
             'default Initial state',
             'That\'s the current one: 20151209_010320_foobar',
-          ]));
+          ])());
         });
       });
     });
