@@ -3,3 +3,4 @@ sardineConfig.js
 dist
 npm-debug.log
 sardine_migrations
+*.sqlite
