@@ -1,37 +1,20 @@
-import Promise from 'bluebird';
+import _ from 'lodash';
+import Promise, { using } from 'bluebird';
 
 import { QueryError, MissingDependency } from '../../errors';
 
 class Driver {
 
-  _connected = null;
-
   client = null;
 
   constructor(config) {
     this.config = config;
+
+    _.bindAll(this, ['result', 'sql']);
   }
 
-  connect() {
+  getConnection() {
     throw new ReferenceError('Not implemented!');
-  }
-
-  disconnect() {
-    if(!this.connected()) {
-      return Promise.reject(new ReferenceError(`Can't close the database, it's not open`));
-    }
-    return this.client
-      .closeAsync()
-      .then(() => {
-        this._connected = false;
-      });
-  }
-
-  connected(val) {
-    if(val) {
-      this._connected = val;
-    }
-    return this.client && this._connected;
   }
 
   getModule() {
@@ -50,43 +33,38 @@ class Driver {
   }
 
   query(sql, params = []) {
-    if(!this.connected()) {
-      return Promise.reject(
-        new ReferenceError(`${this.constructor.name}.connect() must be called before doing any query`));
-    }
+    const self = this;
 
-    sql = this.sql(sql);
-
-    return this.client.queryAsync(this.getCreateStatement())
-      .then(() => this.client.queryAsync(sql, params))
-      .then((res) => this.result(res));
+    return using(this.getConnection(), (client) => {
+      return Promise.coroutine(function* $query() {
+        yield client.queryAsync(self.getCreateStatement());
+        return client.queryAsync(self.sql(sql), params).then(self.result);
+      })()
+      .finally(() => client.closeAsync());
+    });
   }
 
   transaction(queries) {
-    if(!this.connected()) {
-      return Promise.reject(
-        new ReferenceError(`${this.constructor.name}.connect() must be called before doing any transaction`));
-    }
+    const self = this;
 
-    return this.client.queryAsync('BEGIN')
-    .then(() =>
-      Promise.coroutine(function* transactionQuery() {
+    return using(this.getConnection(), (client) => {
+      return Promise.coroutine(function* transactionQuery() {
+        yield client.queryAsync('BEGIN');
+        yield client.queryAsync(self.getCreateStatement());
+
         for(const query of queries) {
           try {
-            yield query.func();
+            yield client.queryAsync(self.sql(query.sql), query.params);
           }
           catch(e) {
+            yield client.queryAsync('ROLLBACK');
             throw new QueryError(e, query);
           }
         }
-        return Promise.resolve(true);
+
+        return client.queryAsync('COMMIT');
       })()
-    )
-    .then(() => this.client.queryAsync('COMMIT'))
-    .catch((e) => {
-      return this.client.queryAsync('ROLLBACK').then(() => {
-        throw e;
-      });
+      .finally(() => client.closeAsync());
     });
   }
 

@@ -17,7 +17,7 @@ class Migrations extends EventEmitter {
     this.model = new Model(config);
     this.finder = new Finder(config.directory);
 
-    _.bindAll(this, ['up', 'down', 'destroy']);
+    _.bindAll(this, ['up', 'down']);
   }
 
   verifyLock(discovered, recorded) {
@@ -71,12 +71,11 @@ class Migrations extends EventEmitter {
       throw new EmptyBatchError('Cannot apply empty batch');
     }
 
-    return this.model.connect()
-      .then(() => Promise.coroutine(function* apply() {
-        for (const migration of batch) {
-          yield self.applyMigration({ migration, recorded, direction });
-        }
-      })());
+    return Promise.coroutine(function* apply() {
+      for (const migration of batch) {
+        yield self.applyMigration({ migration, recorded, direction });
+      }
+    })();
   }
 
   applyMigration({ migration, recorded, direction }) {
@@ -94,7 +93,7 @@ class Migrations extends EventEmitter {
       this.emit(events.APPLY_STEP, path);
       return {
         path,
-        func: () => this.model.query(file.contents.toString()),
+        sql: file.contents.toString(),
       };
     });
 
@@ -110,10 +109,6 @@ class Migrations extends EventEmitter {
           checksum: migration.checksum,
         });
       });
-  }
-
-  destroy() {
-    return this.model && this.model.disconnect();
   }
 }
 

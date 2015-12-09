@@ -57,14 +57,6 @@ describe('pg-migrations', () => {
     },
   ];
 
-  afterEach((done) => {
-    let p = Promise.resolve();
-    if(migrations && migrations.model && migrations.model.driver.connected()) {
-      p = migrations.model.disconnect();
-    }
-    p.then(done).catch(done);
-  });
-
   describe('#up()', () => {
     it('should throw when the batch is empty', () => {
       migrations = new Migrations(config);
@@ -73,14 +65,12 @@ describe('pg-migrations', () => {
       }, errors.EmptyBatchError);
     });
 
-    it('should create the given tables', (done) => {
+    it('should create the given tables', () => {
       migrations = new Migrations(config);
 
       migrations.discovered = testBatch;
-      migrations.up({ batch: testBatch, recorded: [] })
-        .then(() => migrations.model.driver.query('SELECT 1 from foo1, foo2, foo3, foo4'))
-        .then(() => done())
-        .catch(done);
+      return migrations.up({ batch: testBatch, recorded: [] })
+        .then(() => migrations.model.driver.query('SELECT 1 from foo1, foo2, foo3, foo4'));
     });
 
     it('should rollback when one of the steps contains an error', (done) => {

@@ -1,23 +1,17 @@
 import assert from 'assert';
 
+import Promise from 'bluebird';
+import rimraf from 'rimraf';
+
 import config from '../../testConfig/sqlite3';
 import SQLite3 from '../../../lib/db/drivers/sqlite3';
 import Model from '../../../lib/db/model';
 import errors from '../../../lib/errors';
 
-describe('SQLite3', () => {
-  describe('#disconnect()', () => {
-    const db = new SQLite3(config);
-    it('should not allow queries when #disconnect has been called', (done) => {
+const rmrfAsync = Promise.promisify(rimraf);
 
-      db.connect()
-        .then(() => db.query('SELECT 1;'))
-        .then(() => db.disconnect())
-        .then(() => db.query('SELECT 1;'))
-        .then(() => done(new Error('Allowed a query after disconnect')))
-        .catch(() => done());
-    });
-  });
+describe('SQLite3', () => {
+  after('Removing database file', () => rmrfAsync(config.connection.path));
 
   describe('Queries', () => {
     let db;
@@ -29,9 +23,23 @@ describe('SQLite3', () => {
       db = new SQLite3(config);
       model = new Model(config);
       model.driver = db;
-      wrappedInsert = (values) => ({
-        func: () => model.insert(values),
-      });
+      wrappedInsert = (values, index) => {
+        const { name, applied, migration_time, checksum } = values; // eslint-disable-line camelcase
+
+        return {
+          path: `Script number ${index}`,
+          sql: `
+            INSERT INTO
+              ${model.driver.getTableName()} (name, applied, migration_time, checksum)
+            VALUES (?, ?, ?, ?)`,
+          params: [
+            model.typeWrapper.string(name).toSQL(),
+            model.typeWrapper.boolean(applied).toSQL(),
+            model.typeWrapper.dateTime(migration_time).toSQL(),
+            model.typeWrapper.string(checksum).toSQL(),
+          ],
+        };
+      };
       queries = [
         {
           name: 'foobar1',
@@ -54,20 +62,10 @@ describe('SQLite3', () => {
       ].map(wrappedInsert);
     });
 
-    afterEach((done) => {
-      if(db.connected()) {
-        return model.dropTable()
-          .then(() => {
-            done();
-            return db.disconnect();
-          })
-          .catch(done);
-      }
-      done();
-    });
+    afterEach(() => model.dropTable());
 
     describe('#query()', () => {
-      it('should execute the given query', (done) => {
+      it('should execute the given query', () => {
         const values = {
           name: 'foobar_query',
           applied: false,
@@ -75,7 +73,7 @@ describe('SQLite3', () => {
           checksum: 'checksum',
         };
 
-        model.insert(values)
+        return model.insert(values)
         .then(() => model.findAllByName())
         .then((res) => {
           assert.deepEqual(res, [{
@@ -85,25 +83,18 @@ describe('SQLite3', () => {
             migration_time: '2015-01-01 01:02:03.500',  // eslint-disable-line camelcase
             checksum: 'checksum',
           }]);
-          done();
-        })
-        .catch(done);
+        });
       });
     });
 
     describe('#transaction()', () => {
-      it('should commit the transaction with valid queries', (done) => {
-        db.connect()
-        .then(() => db.transaction(queries))
+      it('should commit the transaction with valid queries', () => {
+        return db.transaction(queries)
         .then(() => model.countAll())
-        .then((count) => {
-          assert.equal(count, 3);
-          done();
-        })
-        .catch(done);
+        .then((count) => assert.strictEqual(count, 3));
       });
 
-      it('should rollback the transaction with invalid queries', (done) => {
+      it('should rollback the transaction with invalid queries', () => {
         queries[1] = wrappedInsert({
           name: null,
           applied: false,
@@ -111,18 +102,13 @@ describe('SQLite3', () => {
           checksum: 'checksum',
         });
 
-        db.connect()
-        .then(() => db.transaction(queries))
+        return db.transaction(queries)
         .catch((e) => {
           assert.notEqual(e, void 0);
           assert.equal(e.code, errors.SQLITE.SQLITE_CONSTRAINT);
         })
         .then(() => model.countAll())
-        .then((count) => {
-          assert.equal(count, 0);
-          done();
-        })
-        .catch(done);
+        .then((count) => assert.strictEqual(count, 0));
       });
     });
   });
