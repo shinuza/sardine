@@ -39,8 +39,7 @@ class Sardine {
 
   init(config, cwd) {
     return actions.init(config, cwd)
-      .then((created) => this.emit(created ? events.INIT_SUCCESS : events.INIT_NOOP))
-      .then(this.migrations.destroy);
+      .then((created) => this.emit(created ? events.INIT_SUCCESS : events.INIT_NOOP));
   }
 
   create(date, suffix) {
@@ -63,7 +62,7 @@ class Sardine {
         this.emit(events.CREATED_DIRECTION_DIRECTORY, paths.down);
         mkdirp.sync(resolve(directory, paths.down));
 
-      }).finally(this.migrations.destroy);
+      });
   }
 
   step(migrationName, suffixes) {
@@ -79,8 +78,7 @@ class Sardine {
             yield writeFileAsync(resolve(directory, path), '') .then(onStepCreated(path));
           }
         })();
-      })
-      .finally(this.migrations.destroy);
+      });
   }
 
   current(options) {
@@ -101,22 +99,19 @@ class Sardine {
 
             return _.compose(...stack)(migration.name);
           });
-      })
-      .finally(this.migrations.destroy);
+      });
   }
 
   up() {
     return this.migrations
       .getUpdateBatch()
-      .then(this.migrations.up)
-      .finally(this.migrations.destroy);
+      .then(this.migrations.up);
   }
 
   down(all) {
     return this.migrations
       .getRollbackBatch(all)
-      .then(this.migrations.down)
-      .finally(this.migrations.destroy);
+      .then(this.migrations.down);
   }
 }
 

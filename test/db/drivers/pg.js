@@ -6,30 +6,8 @@ import Pg from '../../../lib/db/drivers/pg';
 import Model from '../../../lib/db/model';
 
 describe('Postgres', () => {
-  let db;
-
-  after(() => {
-    let p = Promise.resolve();
-    if(db.connected()) {
-      p = db.disconnect();
-    }
-    return p;
-  });
-
-  describe('#disconnect()', () => {
-    it('should not allow queries when #disconnect has been called', (done) => {
-      db = new Pg(config);
-
-      db.connect()
-        .then(() => db.query('SELECT 1;'))
-        .then(() => db.disconnect())
-        .then(() => db.query('SELECT 1;'))
-        .then(() => done(new Error('Allowed a query after #disconnect()')))
-        .catch(() => done());
-    });
-  });
-
   describe('Queries', () => {
+    let db;
     let model;
     let wrappedInsert;
     let queries;
@@ -38,9 +16,23 @@ describe('Postgres', () => {
       db = new Pg(config);
       model = new Model(db.config);
       model.driver = db;
-      wrappedInsert = (values) => ({
-        func: () => model.insert(values),
-      });
+      wrappedInsert = (values, index) => {
+        const { name, applied, migration_time, checksum } = values; // eslint-disable-line camelcase
+
+        return {
+          path: `Script number ${index}`,
+          sql: `
+            INSERT INTO
+              ${model.driver.getTableName()} (name, applied, migration_time, checksum)
+            VALUES (?, ?, ?, ?)`,
+          params: [
+            model.typeWrapper.string(name).toSQL(),
+            model.typeWrapper.boolean(applied).toSQL(),
+            model.typeWrapper.dateTime(migration_time).toSQL(),
+            model.typeWrapper.string(checksum).toSQL(),
+          ],
+        };
+      };
       queries = [
         {
           name: 'foobar1',
@@ -63,20 +55,10 @@ describe('Postgres', () => {
       ].map(wrappedInsert);
     });
 
-    afterEach((done) => {
-      if(db.connected()) {
-        return model.dropTable()
-          .then(() => {
-            done();
-            return db.disconnect();
-          })
-          .catch(done);
-      }
-      done();
-    });
+    afterEach(() => model.dropTable());
 
     describe('#query()', () => {
-      it('should run the given query', (done) => {
+      it('should run the given query', () => {
         const values = {
           name: 'foobar_query',
           applied: false,
@@ -84,49 +66,36 @@ describe('Postgres', () => {
           checksum: 'checksum',
         };
 
-        db.connect()
-          .then(() => model.insert(values))
+        return model.insert(values)
           .then(() => model.findAllByName())
           .then((res) => {
             assert.deepEqual(res, [Object.assign({ id: 1 }, values)]);
-            done();
-          })
-          .catch(done);
+          });
       });
     });
 
     describe('#transaction()', () => {
-      it('should commit the transaction with valid queries', (done) => {
-        db.connect()
-          .then(() => db.transaction(queries))
+      it('should commit the transaction with valid queries', () => {
+        return db.transaction(queries)
           .then(() => model.countAll())
-          .then((count) => {
-            assert.equal(count, 3);
-            done();
-          })
-          .catch(done);
+          .then((count) => assert.strictEqual(count, '3'));
       });
 
-      it('should rollback the transaction with invalid queries', (done) => {
+      it('should rollback the transaction with invalid queries', () => {
         queries[1] = wrappedInsert({
           name: null,
           applied: false,
           migration_time: new Date(2015, 0, 1, 1, 2, 3, 502), // eslint-disable-line camelcase
           checksum: 'checksum',
-        });
+        }, 1);
 
-        db.connect()
-          .then(() => db.transaction(queries))
+        return db.transaction(queries)
           .catch((e) => {
             assert.notEqual(e, void 0);
             assert.equal(e.code, errors.PG.NOT_NULL_VIOLATION);
           })
           .then(() => model.countAll())
-          .then((count) => {
-            assert.strictEqual(count, '0');
-            done();
-          })
-          .catch(done);
+          .then((count) => assert.strictEqual(count, '0'));
       });
     });
 

@@ -23,10 +23,10 @@ class Pg extends Driver {
     super(config);
   }
 
-  connect() {
+  getConnection() {
     const self = this;
     const pg = this.getModule();
-    const client = this.client = new pg.Client(this.config.connection);
+    const client = new pg.Client(this.config.connection);
 
     return new Promise(function connectPg(resolve, reject) {
       client.connect(function onPgConnect(err) {
@@ -36,21 +36,14 @@ class Pg extends Driver {
         if(err) {
           return reject(err);
         }
-        self.connected(true);
         resolve(client);
       });
     });
   }
 
   _promisifyClose(client) {
-    return () => new Promise(function endPg(resolve, reject) {
-      try {
-        client.end();
-        resolve();
-      }
-      catch(e) {
-        reject(e);
-      }
+    return () => Promise.try(function endPg() {
+      client.end();
     });
   }
 

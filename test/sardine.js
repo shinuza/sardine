@@ -191,14 +191,12 @@ describe('Sardine', () => {
         const model = sardine.migrations.model;
 
         return sardine.up()
-          .then(() => model.connect())
           .then(() =>
             Promise.coroutine(function* checkMigrationsApplied() {
               for(let i = 0; i < steps.length; i = i + 1) {
                 yield model.query(`SELECT 1 FROM foo${i}`);
               }
-            })())
-          .finally(() => model.disconnect());
+            })());
       });
     });
 
@@ -212,7 +210,6 @@ describe('Sardine', () => {
         }
 
         return sardine.down(true)
-          .then(() => model.connect())
           .then(() =>
             Promise.coroutine(function* checkMigrationsRolledback() {
               for(let i = 0; i < steps.length; i = i + 1) {
@@ -220,8 +217,7 @@ describe('Sardine', () => {
                   .query(`SELECT COUNT (relname) as matching FROM pg_class WHERE relname = 'foo${i}'`)
                   .then(tableDoesntExist);
               }
-            })())
-          .finally(() => model.disconnect());
+            })());
       });
     });
 

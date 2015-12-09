@@ -19,12 +19,14 @@ class SQLite3Driver extends Driver {
     super(config);
   }
 
-  connect() {
-    const self = this;
+  getConnection() {
+    let client;
+    const { config } = this;
     const sqlite3 = this.getModule();
+    ;
 
     return new Promise(function connectSQLite3(resolve, reject) {
-      const client = self.client = new sqlite3.Database(self.config.connection.path);
+      client = new sqlite3.Database(config.connection.path);
       client.on('open', function onSQLite3Connect(err) {
         if(err) {
           return reject(err);
@@ -32,7 +34,6 @@ class SQLite3Driver extends Driver {
         client.queryAsync = Promise.promisify(client.all);
         client.closeAsync = Promise.promisify(client.close);
 
-        self.connected(true);
         resolve(client);
       });
     });

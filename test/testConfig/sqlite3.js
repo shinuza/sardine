@@ -5,7 +5,7 @@ const config = {
   tableName: 'test_sardine_migrations',
   driver: 'sqlite3',
   connection: {
-    path: ':memory:',
+    path: path.resolve(__dirname, '../sandbox/test.sqlite'),
   },
 };
 
