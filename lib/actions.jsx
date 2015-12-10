@@ -1,12 +1,11 @@
 import { join, resolve } from 'path';
 import fs from 'fs';
 
-import _ from 'lodash';
 import Promise from 'bluebird';
 
 import filters from './filters';
-import { twoDigits } from './util';
-import { MigrationNotFound, MissingConfiguration } from './errors';
+import { getMigration, twoDigits } from './util';
+import { MissingConfiguration } from './errors';
 import { snake } from './date';
 import { SARDINE_CONFIG, CONFIG_TEMPLATE } from './config';
 
@@ -35,11 +34,7 @@ function create(date, suffix) {
 
 function step(discovered, migrationName, suffixes) {
   const paths = [];
-  const target = _.find(discovered, (m) => _.contains(m.name, migrationName));
-
-  if(!target) {
-    throw new MigrationNotFound(`Migration "${migrationName}" not found`);
-  }
+  const target = getMigration(discovered, migrationName);
 
   ['up', 'down'].forEach((direction) => {
     suffixes.forEach((suffix, index) => {

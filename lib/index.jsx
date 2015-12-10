@@ -10,6 +10,7 @@ import errors from './errors';
 import actions from './actions';
 import Finder from './finder';
 import Migrations from './migrations';
+import { getMigration } from './util';
 
 const writeFileAsync = Promise.promisify(writeFile);
 
@@ -112,6 +113,28 @@ class Sardine {
     return this.migrations
       .getRollbackBatch(all)
       .then(this.migrations.down);
+  }
+
+  _mergeFiles(prev, file) {
+    return prev + `-- ${file.filename}\n${file.contents.toString()}\n\n`;
+  }
+
+  compile(migrationName) {
+    return this.finder.discover()
+      .then((discovered) => {
+        const migration = getMigration(discovered, migrationName);
+        let { up, down } = migration;
+
+        down.files.reverse();
+
+        up = up.files.reduce(this._mergeFiles, '');
+        down = down.files.reduce(this._mergeFiles, '');
+
+        return {
+          migration,
+          files: { up, down },
+        };
+      });
   }
 }
 

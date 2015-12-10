@@ -30,4 +30,17 @@ describe('Util', () => {
       }, errors.IntegrityError);
     });
   });
+
+  describe('#getMigration', () => {
+    it('should fail when no migration matches the given name', () => {
+      assert.throws(() => {
+        util.getMigration([{ name: 'foobar' }, { name: 'fizz' }], 'buzz');
+      }, errors.MigrationNotFound);
+    });
+
+    it('should return the matched migration', () => {
+      const migration = util.getMigration([{ name: 'foobar' }, { name: 'fizz' }, { name: 'buzz' }], 'buzz');
+      assert.deepEqual(migration, { name: 'buzz' });
+    });
+  });
 });
