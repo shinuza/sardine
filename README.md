@@ -101,6 +101,7 @@ Usage: sardine [options] [command]
 Commands:
 
   init                            Initialize a new Sardine project
+  compile [options] <suffix>      Merge up and down steps to single files
   create <suffix>                 Create a new migration directory
   step <migration> [suffixes...]  Create (a) new step(s) in <migration>. Fuzzy searchs migrations by name.
   update|up                       Migrate to the database to the latest version
@@ -115,6 +116,8 @@ Options:
 ```
 
 # API
+
+**Note**: Every method in the API returns a bluebird `Promise`.
 
 ### config
 
@@ -275,6 +278,17 @@ Rollbacks the latest migration, rollbacks everything if `all` is true.
 ```javascript
 const sardine = new Sardine(config);
 sardine.down();
+```
+
+### .compile(migrationName)
+
+Tries to find `migrationName`, then gathers every files in `up` and `down` and merge each of them in a single string.
+
+```javascript
+const sardine = new Sardine(config);
+sardine.compile('foobar');
+
+// { files: { up: 'CREATE TABLE foo();', down: 'DROP TABLE foo;' }, migration: { name: 'foobar', ... } }
 ```
 
 # events
