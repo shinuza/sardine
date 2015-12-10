@@ -1,10 +1,19 @@
 import assert from 'assert';
 
+import Promise from 'bluebird';
+import rimraf from 'rimraf';
+
+import config from '../../testConfig/sqlite3';
 import Migrations from '../../../lib/migrations.jsx';
 import errors from '../../../lib/errors.jsx';
 
+const rmrfAsync = Promise.promisify(rimraf);
+
 describe('sqlite3-migrations', () => {
-  const config = require('../../testConfig/sqlite3');
+  const removeSqliteDb = () => rmrfAsync(config.connection.path);
+  before('Removing database file', removeSqliteDb);
+  after('Removing database file', removeSqliteDb);
+
   const migrations = new Migrations(config);
   const testBatch = [
     {

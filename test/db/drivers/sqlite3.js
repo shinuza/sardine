@@ -11,7 +11,9 @@ import errors from '../../../lib/errors';
 const rmrfAsync = Promise.promisify(rimraf);
 
 describe('SQLite3', () => {
-  after('Removing database file', () => rmrfAsync(config.connection.path));
+  const removeSqliteDb = () => rmrfAsync(config.connection.path);
+  before('Removing database file', removeSqliteDb);
+  after('Removing database file', removeSqliteDb);
 
   describe('Queries', () => {
     let db;
