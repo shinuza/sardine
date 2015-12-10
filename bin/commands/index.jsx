@@ -14,6 +14,8 @@ function command(fn, configKeys) {
 
 const init = () => require('./init')(config(), process.cwd());
 
+const compile = command(require('./compile'), ['directory']);
+
 const create = command(require('./create'), ['directory']);
 
 const current = command(require('./current'), ['directory']);
@@ -26,6 +28,7 @@ const update = command(require('./update'), ['directory']);
 
 export default {
   init,
+  compile,
   create,
   current,
   rollback,

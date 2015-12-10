@@ -3,7 +3,7 @@ import { basename } from 'path';
 
 import _ from 'lodash';
 
-import { IntegrityError } from './errors';
+import { IntegrityError, MigrationNotFound } from './errors';
 
 function twoDigits(num) {
   return _.padLeft(num, 2, '0');
@@ -36,8 +36,19 @@ function checkIntegrity(ups, downs, name) {
   });
 }
 
+function getMigration(discovered, migrationName) {
+  const target = _.find(discovered, (m) => _.contains(m.name, migrationName));
+
+  if(!target) {
+    throw new MigrationNotFound(`Migration "${migrationName}" not found`);
+  }
+
+  return target;
+}
+
 export default {
-  twoDigits,
-  checksum,
   checkIntegrity,
+  checksum,
+  getMigration,
+  twoDigits,
 };

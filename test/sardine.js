@@ -250,5 +250,73 @@ describe('Sardine', () => {
         });
       });
     });
+
+    describe('#compile(migrationName)', () => {
+      it('should throw when the migration is unknown', () => {
+        const sardine = new Sardine(config);
+        let hasThrown = false;
+
+        return sardine.compile('fizzbuzz')
+          .catch(MigrationNotFound, () => hasThrown = true)
+          .then(() => assert(hasThrown));
+      });
+
+      it('should dump the current migration as a single buffer', () => {
+        const sardine = new Sardine(config);
+        return sardine.compile('foobar').then((result) => {
+          const { migration, files } = result;
+          const { up, down } = files;
+
+          assert(_.contains(migration.name, 'foobar'));
+
+          assert.equal(up,
+`-- 20151209_010320_foobar/up/01_foo.sql
+CREATE TABLE foo0(id serial NOT NULL);
+
+-- 20151209_010320_foobar/up/02_bar.sql
+CREATE TABLE foo1(id serial NOT NULL);
+
+-- 20151209_010320_foobar/up/03_baz.sql
+CREATE TABLE foo2(id serial NOT NULL);
+
+-- 20151209_010320_foobar/up/04_buzz.sql
+CREATE TABLE foo3(id serial NOT NULL);
+
+-- 20151209_010320_foobar/up/05_fizz.sql
+CREATE TABLE foo4(id serial NOT NULL);
+
+-- 20151209_010320_foobar/up/06_buzz.sql
+CREATE TABLE foo5(id serial NOT NULL);
+
+-- 20151209_010320_foobar/up/07_fizzbuzz.sql
+CREATE TABLE foo6(id serial NOT NULL);
+
+`);
+          assert.equal(down,
+`-- 20151209_010320_foobar/down/07_fizzbuzz.sql
+DROP TABLE foo6;
+
+-- 20151209_010320_foobar/down/06_buzz.sql
+DROP TABLE foo5;
+
+-- 20151209_010320_foobar/down/05_fizz.sql
+DROP TABLE foo4;
+
+-- 20151209_010320_foobar/down/04_buzz.sql
+DROP TABLE foo3;
+
+-- 20151209_010320_foobar/down/03_baz.sql
+DROP TABLE foo2;
+
+-- 20151209_010320_foobar/down/02_bar.sql
+DROP TABLE foo1;
+
+-- 20151209_010320_foobar/down/01_foo.sql
+DROP TABLE foo0;
+
+`);
+        });
+      });
+    });
   });
 });
