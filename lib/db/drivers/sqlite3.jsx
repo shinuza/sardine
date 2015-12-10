@@ -23,7 +23,6 @@ class SQLite3Driver extends Driver {
     let client;
     const { config } = this;
     const sqlite3 = this.getModule();
-    ;
 
     return new Promise(function connectSQLite3(resolve, reject) {
       client = new sqlite3.Database(config.connection.path);

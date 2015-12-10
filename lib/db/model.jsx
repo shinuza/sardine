@@ -1,5 +1,3 @@
-import Promise from 'bluebird';
-
 import Types from './types';
 import drivers from './drivers';
 
