@@ -12,6 +12,12 @@ program
   .action(commands.init);
 
 program
+  .command('compile <suffix>')
+  .option('-d, --dir <directory>', 'Target directory')
+  .description('Merge up and down steps to single files')
+  .action(commands.compile);
+
+program
   .command('create <suffix>')
   .description('Create a new migration directory')
   .action(commands.create);
