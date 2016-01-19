@@ -10,8 +10,14 @@ import Finder from './finder';
 import Model from './db/model';
 
 class Migrations extends EventEmitter {
+  DEFAULT_CONFIG = {
+    preprocess: _.identity,
+  };
+
   constructor(config) {
     super();
+
+    config = _.defaults(config, this.DEFAULT_CONFIG);
 
     this.config = config;
     this.model = new Model(config);
@@ -93,7 +99,7 @@ class Migrations extends EventEmitter {
       this.emit(events.APPLY_STEP, path);
       return {
         path,
-        sql: file.contents.toString(),
+        sql: this.config.preprocess(file.contents.toString(), path),
       };
     });
 

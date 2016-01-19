@@ -140,12 +140,20 @@ describe('Sardine', () => {
     const expectedDir = migrationDir(date, 'foobar');
     const upDir = resolve(directory, expectedDir, 'up');
     const downDir = resolve(directory, expectedDir, 'down');
+    const initialTableName = 'foo';
+    const preprocessedTableName = 'bar';
+    const customPreprocessor = (fileContent) =>
+      fileContent.replace(new RegExp(initialTableName, 'g'), preprocessedTableName);
+
+    function tableDoesntExist([row]) {
+      assert.equal(row.matching, '0');
+    }
 
     before(() => {
       const up = Promise.coroutine(function* writeUpSteps() {
         for(let i = 0; i < steps.length; i = i + 1) {
           const filename = stepFilename(i, steps[i]);
-          const sql = `CREATE TABLE foo${i}(id serial NOT NULL);`;
+          const sql = `CREATE TABLE ${initialTableName}${i}(id serial NOT NULL);`;
           yield writeFileAsync(resolve(upDir, filename), sql);
         }
       })();
@@ -153,7 +161,7 @@ describe('Sardine', () => {
       const down = Promise.coroutine(function* writeDownSteps() {
         for(let i = 0; i < steps.length; i = i + 1) {
           const filename = stepFilename(i, steps[i]);
-          const sql = `DROP TABLE foo${i};`;
+          const sql = `DROP TABLE ${initialTableName}${i};`;
           yield writeFileAsync(resolve(downDir, filename), sql);
         }
       })();
@@ -170,7 +178,7 @@ describe('Sardine', () => {
           .then(() =>
             Promise.coroutine(function* checkMigrationsApplied() {
               for(let i = 0; i < steps.length; i = i + 1) {
-                yield model.query(`SELECT 1 FROM foo${i}`);
+                yield model.query(`SELECT 1 FROM ${initialTableName}${i}`);
               }
             })());
       });
@@ -181,16 +189,44 @@ describe('Sardine', () => {
         const sardine = new Sardine(testConfig);
         const model = sardine.migrations.model;
 
-        function tableDoesntExist([row]) {
-          assert.equal(row.matching, '0');
-        }
+        return sardine.down(true)
+          .then(() =>
+            Promise.coroutine(function* checkMigrationsRolledback() {
+              for(let i = 0; i < steps.length; i = i + 1) {
+                yield model
+                  .query(`SELECT count(*) AS matching FROM pg_class WHERE relname = '${initialTableName}${i}'`)
+                  .then(tableDoesntExist);
+              }
+            })());
+      });
+    });
+
+    describe('#up() with custom preprocessor', () => {
+      it('should apply the migration properly', () => {
+        const sardine = new Sardine({ ...testConfig, ...{ preprocess: customPreprocessor } });
+        const model = sardine.migrations.model;
+
+        return sardine.up()
+          .then(() =>
+            Promise.coroutine(function* checkMigrationsApplied() {
+              for(let i = 0; i < steps.length; i = i + 1) {
+                yield model.query(`SELECT 1 FROM ${preprocessedTableName}${i}`);
+              }
+            })());
+      });
+    });
+
+    describe('#down() with custom preprocessor', () => {
+      it('should rollback the migration properly', () => {
+        const sardine = new Sardine({ ...testConfig, ...{ preprocess: customPreprocessor } });
+        const model = sardine.migrations.model;
 
         return sardine.down(true)
           .then(() =>
             Promise.coroutine(function* checkMigrationsRolledback() {
               for(let i = 0; i < steps.length; i = i + 1) {
                 yield model
-                  .query(`SELECT COUNT (relname) as matching FROM pg_class WHERE relname = 'foo${i}'`)
+                  .query(`SELECT count(*) AS matching FROM pg_class WHERE relname = '${preprocessedTableName}${i}'`)
                   .then(tableDoesntExist);
               }
             })());

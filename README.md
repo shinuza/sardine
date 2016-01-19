@@ -135,6 +135,10 @@ Sardine looks up for a `sardineConfig.js` file in the current directory.
     database: 'postgres',
   },
   path: '/usr/local/mybase.sqlite', // Only used for sqlite3
+  preprocess: (content, path) => content, // Optional SQL preprocessing function.
+                                          // Takes content and path of a SQL file.
+                                          // Returns the actual SQL code to be executed.
+                                          // Default: identity function.
 };
 ```
 
