@@ -7,8 +7,8 @@ class Model {
     name: Types.String,
     applied: Types.Boolean,
     migration_time: Types.DateTime,
-    checksum: Types.String
-  }
+    checksum: Types.String,
+  };
 
   constructor(config) {
     const { driver } = config;
