@@ -26,22 +26,18 @@ describe('Actions', () => {
     });
   });
 
-  describe('init(#config, path)', () => {
+  describe('#init(path)', () => {
     const f = path.resolve(SANDBOX, SARDINE_CONFIG);
 
     after(() => unlinkAsync(f));
 
     it('should create the sardineConfig file when it does not exist', () => {
-      const p = Promise.reject(new errors.MissingConfiguration('Yup, it failed'));
-
-      return actions.init(p, SANDBOX)
+      return actions.init(SANDBOX)
         .then((created) => assert.equal(created, true));
     });
 
     it('should not create the sandineConfig file when it already exists', () => {
-      const p = Promise.resolve();
-
-      return actions.init(p, SANDBOX)
+      return actions.init(SANDBOX)
         .then((created) => assert.equal(created, false));
     });
   });

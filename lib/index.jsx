@@ -15,6 +15,11 @@ import { getMigration } from './util';
 const writeFileAsync = Promise.promisify(writeFile);
 
 class Sardine {
+
+  static init(cwd) {
+    return actions.init(cwd);
+  }
+
   constructor(config) {
     this.config = config;
     this.migrations = new Migrations(config);
@@ -36,11 +41,6 @@ class Sardine {
 
   emit(...args) {
     this.migrations.emit(...args);
-  }
-
-  init(config, cwd) {
-    return actions.init(config, cwd)
-      .then((created) => this.emit(created ? events.INIT_SUCCESS : events.INIT_NOOP));
   }
 
   create(date, suffix) {
@@ -137,5 +137,7 @@ class Sardine {
       });
   }
 }
+
+Object.assign(Sardine, handlers);
 
 export default Sardine;
