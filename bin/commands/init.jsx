@@ -1,13 +1,12 @@
 import Sardine from '../../lib';
-import { events } from '../../lib/events';
 
-function init(config, cwd) {
-  const sardine = new Sardine();
-
-  sardine.on(events.INIT_NOOP, sardine.onInitNoop);
-  sardine.on(events.INIT_SUCCESS, sardine.onInitSuccess);
-
-  return sardine.init(config, cwd);
+function init(directory) {
+  return Sardine.init(directory).then((missing) => {
+    if(missing) {
+      return Sardine.onInitSuccess();
+    }
+    return Sardine.onInitNoop();
+  });
 }
 
 export default init;

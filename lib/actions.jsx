@@ -7,12 +7,12 @@ import filters from './filters';
 import { getMigration, twoDigits } from './util';
 import { MissingConfiguration } from './errors';
 import { snake } from './date';
-import { SARDINE_CONFIG, CONFIG_TEMPLATE } from './config';
+import { SARDINE_CONFIG, CONFIG_TEMPLATE, config } from './config';
 
 Promise.promisifyAll(fs);
 
-function init(config, cwd) {
-  return config
+function init(cwd) {
+  return config(cwd)
     .then(() => false)
     .catch(MissingConfiguration, () => {
       const path = resolve(cwd, SARDINE_CONFIG);

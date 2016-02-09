@@ -1,11 +1,11 @@
 import { stat } from 'fs';
 import { resolve } from 'path';
 
-import _ from 'lodash';
 import Promise from 'bluebird';
 
-import { MissingConfiguration, UndefinedConfiguration } from '../lib/errors';
+import { MissingConfiguration } from '../lib/errors';
 
+const statAsync = Promise.promisify(stat);
 const SARDINE_CONFIG = 'sardineConfig.js';
 const CONFIG_TEMPLATE = `module.exports = {
   directory:  'migrations',
@@ -20,35 +20,18 @@ const CONFIG_TEMPLATE = `module.exports = {
 };
 `;
 
-function checkKeys(conf, requestedKeys) {
-  const filteredKeys = _.keys(_.pick(conf, ...requestedKeys));
-  const missingKeys = _.difference(requestedKeys, filteredKeys);
+function config(path = process.cwd()) {
+  const configPath = resolve(path, SARDINE_CONFIG);
 
-  if(!_.isEqual(filteredKeys, requestedKeys)) {
-    throw new UndefinedConfiguration(`Entries "${missingKeys.join(', ')}" are missing in "${SARDINE_CONFIG}"`);
-  }
-}
-
-function config(keys) {
-  const configPath = resolve(process.cwd(), SARDINE_CONFIG);
-  return new Promise((res, rej) => {
-    stat(configPath, (err) => {
-      if(err) {
-        const error = new MissingConfiguration(`${SARDINE_CONFIG} not found in current directory`);
-        return rej(error);
-      }
-      const conf = require(configPath);
-      if(keys) {
-        checkKeys(conf, keys);
-      }
-      res(conf);
+  return statAsync(configPath)
+    .then(() => require(configPath))
+    .catch(() => {
+      throw new MissingConfiguration(`${SARDINE_CONFIG} not found in ${path}`);
     });
-  });
 }
 
 export default {
   CONFIG_TEMPLATE,
   SARDINE_CONFIG,
-  checkKeys,
   config,
 };

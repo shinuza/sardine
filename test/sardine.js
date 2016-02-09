@@ -8,9 +8,9 @@ import rimraf from 'rimraf';
 import mkdirp from 'mkdirp';
 
 import Sardine from '../lib/';
-import config from './testConfig/pg';
-import { CONFIG_TEMPLATE, SARDINE_CONFIG } from '../lib/config';
-import { MigrationNotFound, MissingConfiguration, PendingMigrations } from '../lib/errors';
+import testConfig from './testConfig/pg';
+import { config, CONFIG_TEMPLATE, SARDINE_CONFIG } from '../lib/config';
+import { MigrationNotFound, PendingMigrations } from '../lib/errors';
 import { events } from '../lib/events';
 import { snake } from '../lib/date';
 import { twoDigits } from '../lib/util';
@@ -31,55 +31,31 @@ function migrationDir(date, suffix) {
 }
 
 describe('Sardine', () => {
-  const { directory } = config;
+  const { directory } = testConfig;
   const steps = ['foo', 'bar', 'baz', 'buzz', 'fizz', 'buzz', 'fizzbuzz'];
 
   before('Creating migration directory', () => mkdirpAsync(directory));
   after('Removing migration directory', () => rmrfAsync(directory));
 
-  describe('#init()', () => {
+  describe('.init()', () => {
     const sardineConfigPath = resolve(SANDBOX, SARDINE_CONFIG);
+
     after('Removing sardine config file', () => rmrfAsync(sardineConfigPath));
 
-    it('should fire success event on creation', () => {
-      const sardine = new Sardine(config);
-      const promise = Promise.reject(new MissingConfiguration('Foobar'));
-      const eventsParameters = [];
+    it('should fire success event on creation', () =>
+      Sardine.init(SANDBOX)
+        .then((missing) => assert.equal(missing, true)));
 
-      function recordEvent() {
-        eventsParameters.push('called');
-      }
-
-      sardine.on(events.INIT_SUCCESS, recordEvent);
-
-      return sardine.init(promise, SANDBOX).then(() => {
-        assert.deepEqual(eventsParameters, ['called']);
-        return readFileAsync(sardineConfigPath)
-          .then((contents) => assert.deepEqual(contents.toString(), CONFIG_TEMPLATE));
-      });
-    });
-
-    it('should fire noop event when the file already exists', () => {
-      const sardine = new Sardine(config);
-      const promise = Promise.resolve();
-      const eventsParameters = [];
-
-      function recordEvent() {
-        eventsParameters.push('called');
-      }
-
-      sardine.on(events.INIT_NOOP, recordEvent);
-
-      return readFileAsync(sardineConfigPath)
-        .then((contents) => assert.deepEqual(contents.toString(), CONFIG_TEMPLATE))
-        .then(() => sardine.init(promise, SANDBOX))
-        .then(() => assert.deepEqual(eventsParameters, ['called']));
-    });
+    it('should fire noop event when the file already exists', () =>
+      Sardine.init(SANDBOX)
+        .then((missing) => assert.equal(missing, false))
+        .then(() => readFileAsync(sardineConfigPath))
+        .then((contents) => assert.deepEqual(contents.toString(), CONFIG_TEMPLATE)));
   });
 
   describe('#create()', () => {
     it('should create a migration directory and direction directories (up and down)', () => {
-      const sardine = new Sardine(config);
+      const sardine = new Sardine(testConfig);
       const dirs = ['', 'up', 'down'];
       const date = new Date(2015, 11, 9, 1, 3, 20);
       const expectedDir = migrationDir(date, 'foobar');
@@ -105,7 +81,7 @@ describe('Sardine', () => {
 
     it('should fail since another pending migration exists', () => {
       let hasThrown = false;
-      return new Sardine(config)
+      return new Sardine(testConfig)
         .create(new Date(), 'barbuz')
         .catch((e) => {
           assert.equal(e.constructor, PendingMigrations);
@@ -117,7 +93,7 @@ describe('Sardine', () => {
 
   describe('#step()', () => {
     it('should create step files', () => {
-      const sardine = new Sardine(config);
+      const sardine = new Sardine(testConfig);
       const date = new Date(2015, 11, 9, 1, 3, 20);
       const expectedDir = migrationDir(date, 'foobar');
       const upDir = resolve(directory, expectedDir, 'up');
@@ -149,7 +125,7 @@ describe('Sardine', () => {
 
     it('should fail when the migration is unknown', () => {
       let hasThrown = false;
-      return new Sardine(config)
+      return new Sardine(testConfig)
         .step('unknown', steps)
         .catch((e) => {
           assert.equal(e.constructor, MigrationNotFound);
@@ -187,7 +163,7 @@ describe('Sardine', () => {
 
     describe('#up()', () => {
       it('should apply the migration properly', () => {
-        const sardine = new Sardine(config);
+        const sardine = new Sardine(testConfig);
         const model = sardine.migrations.model;
 
         return sardine.up()
@@ -202,7 +178,7 @@ describe('Sardine', () => {
 
     describe('#down()', () => {
       it('should rollback the migration properly', () => {
-        const sardine = new Sardine(config);
+        const sardine = new Sardine(testConfig);
         const model = sardine.migrations.model;
 
         function tableDoesntExist([row]) {
@@ -229,7 +205,7 @@ describe('Sardine', () => {
       };
 
       it('should mark initial state as current', () => {
-        const sardine = new Sardine(config);
+        const sardine = new Sardine(testConfig);
 
         return sardine.current(currentOptions)
         .then((entries) => assert.deepEqual(entries, [
@@ -239,7 +215,7 @@ describe('Sardine', () => {
       });
 
       it('should mark the latest migration as current, after we ran .up()', () => {
-        const sardine = new Sardine(config);
+        const sardine = new Sardine(testConfig);
         return Promise.coroutine(function* updateAndState() {
           yield sardine.up();
           yield sardine.current(currentOptions)
@@ -253,7 +229,7 @@ describe('Sardine', () => {
 
     describe('#compile(migrationName)', () => {
       it('should throw when the migration is unknown', () => {
-        const sardine = new Sardine(config);
+        const sardine = new Sardine(testConfig);
         let hasThrown = false;
 
         return sardine.compile('fizzbuzz')
@@ -262,7 +238,7 @@ describe('Sardine', () => {
       });
 
       it('should dump the current migration as a single buffer', () => {
-        const sardine = new Sardine(config);
+        const sardine = new Sardine(testConfig);
         return sardine.compile('foobar').then((result) => {
           const { migration, files } = result;
           const { up, down } = files;
