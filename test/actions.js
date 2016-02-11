@@ -27,17 +27,17 @@ describe('Actions', () => {
   });
 
   describe('#init(path)', () => {
-    const f = path.resolve(SANDBOX, SARDINE_CONFIG);
+    const sardineConfigPath = path.resolve(SANDBOX, SARDINE_CONFIG);
 
-    after(() => unlinkAsync(f));
+    after(() => unlinkAsync(sardineConfigPath));
 
     it('should create the sardineConfig file when it does not exist', () => {
-      return actions.init(SANDBOX)
+      return actions.init(sardineConfigPath)
         .then((created) => assert.equal(created, true));
     });
 
-    it('should not create the sandineConfig file when it already exists', () => {
-      return actions.init(SANDBOX)
+    it('should not create the sardineConfig file when it already exists', () => {
+      return actions.init(sardineConfigPath)
         .then((created) => assert.equal(created, false));
     });
   });

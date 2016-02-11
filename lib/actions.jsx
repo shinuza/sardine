@@ -1,4 +1,4 @@
-import { join, resolve } from 'path';
+import { join } from 'path';
 import fs from 'fs';
 
 import Promise from 'bluebird';
@@ -7,15 +7,14 @@ import filters from './filters';
 import { getMigration, twoDigits } from './util';
 import { MissingConfiguration } from './errors';
 import { snake } from './date';
-import { SARDINE_CONFIG, CONFIG_TEMPLATE, config } from './config';
+import { CONFIG_TEMPLATE, config } from './config';
 
 Promise.promisifyAll(fs);
 
-function init(cwd) {
-  return config(cwd)
+function init(path) {
+  return config(path)
     .then(() => false)
     .catch(MissingConfiguration, () => {
-      const path = resolve(cwd, SARDINE_CONFIG);
       return fs.writeFileAsync(path, CONFIG_TEMPLATE)
         .then(() => true);
     });

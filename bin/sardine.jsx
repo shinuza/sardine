@@ -1,10 +1,12 @@
 import program from 'commander';
 
 import commands from './commands';
+import { SARDINE_CONFIG } from '../lib/config';
 
 program
   .version(require('../package.json').version)
-  .option('-v, --verbose', 'Display verbose information', false);
+  .option('-v, --verbose', 'Display verbose information', false)
+  .option('-c, --config [path]', 'Specify configuration file path', SARDINE_CONFIG);
 
 program
   .command('init')

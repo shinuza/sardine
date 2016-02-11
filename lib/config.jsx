@@ -20,13 +20,11 @@ const CONFIG_TEMPLATE = `module.exports = {
 };
 `;
 
-function config(path = process.cwd()) {
-  const configPath = resolve(path, SARDINE_CONFIG);
-
+function config(configPath = resolve(process.cwd(), SARDINE_CONFIG)) {
   return statAsync(configPath)
     .then(() => require(configPath))
     .catch(() => {
-      throw new MissingConfiguration(`${SARDINE_CONFIG} not found in ${path}`);
+      throw new MissingConfiguration(`${configPath} does not exist`);
     });
 }
 
