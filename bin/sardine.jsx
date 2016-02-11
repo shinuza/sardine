@@ -10,42 +10,42 @@ program
 
 program
   .command('init')
-  .description('Initialize a new Sardine project')
+  .description('Initialize a new Sardine project.')
   .action(commands.init);
 
 program
-  .command('compile <suffix>')
+  .command('compile <migration>')
   .option('-d, --dir <directory>', 'Target directory')
-  .description('Merge up and down steps to single files')
+  .description('Merge up and down steps to single files. Fuzzy searches for <migration>')
   .action(commands.compile);
 
 program
   .command('create <suffix>')
-  .description('Create a new migration directory')
+  .description('Create a new migration directory.')
   .action(commands.create);
 
 program
   .command('step <migration> [suffixes...]')
-  .description('Create (a) new step(s) in <migration>. Fuzzy searchs migrations by name.')
+  .description('Create (a) new step(s) in <migration>. Fuzzy searches for <migration>.')
   .action(commands.step);
 
 program
   .command('update')
   .alias('up')
-  .description('Migrate to the database to the latest version')
+  .description('Migrate to the database to the latest version.')
   .action(commands.update);
 
 program
   .command('rollback')
   .alias('down')
-  .description('Revert latest migration. --all to revert all migrations')
+  .description('Revert latest migration. --all to revert all migrations.')
   .option('-a, --all', 'Revert every known migration')
   .action(commands.rollback);
 
 program
   .command('current')
   .alias('cur')
-  .description('Show current migration')
+  .description('Show current migration state.')
   .action(commands.current);
 
 program

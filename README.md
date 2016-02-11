@@ -96,24 +96,26 @@ Sardine will **not**:
 ### Usage
 
 ```
-Usage: sardine [options] [command]
+Usage:  [options] [command]
+
 
 Commands:
 
-  init                            Initialize a new Sardine project
-  compile [options] <suffix>      Merge up and down steps to single files
-  create <suffix>                 Create a new migration directory
-  step <migration> [suffixes...]  Create (a) new step(s) in <migration>. Fuzzy searchs migrations by name.
-  update|up                       Migrate to the database to the latest version
-  rollback|down [options]         Revert latest migration. --all to revert all migrations
-  current|cur                     Show current migration
+  init                            Initialize a new Sardine project.
+  compile [options] <migration>   Merge up and down steps to single files. Fuzzy searches for <migration>
+  create <suffix>                 Create a new migration directory.
+  step <migration> [suffixes...]  Create (a) new step(s) in <migration>. Fuzzy searches for <migration>.
+  update|up                       Migrate to the database to the latest version.
+  rollback|down [options]         Revert latest migration. --all to revert all migrations.
+  current|cur                     Show current migration state.
 
 Options:
 
-  -h, --help     output usage information
-  -V, --version  output the version number
-  -v, --verbose  Display verbose information
+  -h, --help           output usage information
+  -V, --version        output the version number
+  -v, --verbose        Display verbose information
   -c, --config [path]  Specify configuration file path
+
 ```
 
 # API
