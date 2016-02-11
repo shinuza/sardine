@@ -113,6 +113,7 @@ Options:
   -h, --help     output usage information
   -V, --version  output the version number
   -v, --verbose  Display verbose information
+  -c, --config [path]  Specify configuration file path
 ```
 
 # API
@@ -122,6 +123,7 @@ Options:
 ### config
 
 Sardine looks up for a `sardineConfig.js` file in the current directory.
+You can override this behavior by passing a path the `--config` CLI option.
 
 ```javascript
 {
