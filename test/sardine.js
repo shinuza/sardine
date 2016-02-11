@@ -9,7 +9,7 @@ import mkdirp from 'mkdirp';
 
 import Sardine from '../lib/';
 import testConfig from './testConfig/pg';
-import { config, CONFIG_TEMPLATE, SARDINE_CONFIG } from '../lib/config';
+import { CONFIG_TEMPLATE, SARDINE_CONFIG } from '../lib/config';
 import { MigrationNotFound, PendingMigrations } from '../lib/errors';
 import { events } from '../lib/events';
 import { snake } from '../lib/date';
@@ -274,7 +274,7 @@ describe('Sardine', () => {
       });
 
       it('should dump the current migration as a single buffer', () => {
-        const sardine = new Sardine(testConfig);
+        const sardine = new Sardine({ ...testConfig, ...{ preprocess: customPreprocessor } });
         return sardine.compile('foobar').then((result) => {
           const { migration, files } = result;
           const { up, down } = files;
@@ -283,48 +283,48 @@ describe('Sardine', () => {
 
           assert.equal(up,
 `-- 20151209_010320_foobar/up/01_foo.sql
-CREATE TABLE foo0(id serial NOT NULL);
+CREATE TABLE bar0(id serial NOT NULL);
 
 -- 20151209_010320_foobar/up/02_bar.sql
-CREATE TABLE foo1(id serial NOT NULL);
+CREATE TABLE bar1(id serial NOT NULL);
 
 -- 20151209_010320_foobar/up/03_baz.sql
-CREATE TABLE foo2(id serial NOT NULL);
+CREATE TABLE bar2(id serial NOT NULL);
 
 -- 20151209_010320_foobar/up/04_buzz.sql
-CREATE TABLE foo3(id serial NOT NULL);
+CREATE TABLE bar3(id serial NOT NULL);
 
 -- 20151209_010320_foobar/up/05_fizz.sql
-CREATE TABLE foo4(id serial NOT NULL);
+CREATE TABLE bar4(id serial NOT NULL);
 
 -- 20151209_010320_foobar/up/06_buzz.sql
-CREATE TABLE foo5(id serial NOT NULL);
+CREATE TABLE bar5(id serial NOT NULL);
 
 -- 20151209_010320_foobar/up/07_fizzbuzz.sql
-CREATE TABLE foo6(id serial NOT NULL);
+CREATE TABLE bar6(id serial NOT NULL);
 
 `);
           assert.equal(down,
 `-- 20151209_010320_foobar/down/07_fizzbuzz.sql
-DROP TABLE foo6;
+DROP TABLE bar6;
 
 -- 20151209_010320_foobar/down/06_buzz.sql
-DROP TABLE foo5;
+DROP TABLE bar5;
 
 -- 20151209_010320_foobar/down/05_fizz.sql
-DROP TABLE foo4;
+DROP TABLE bar4;
 
 -- 20151209_010320_foobar/down/04_buzz.sql
-DROP TABLE foo3;
+DROP TABLE bar3;
 
 -- 20151209_010320_foobar/down/03_baz.sql
-DROP TABLE foo2;
+DROP TABLE bar2;
 
 -- 20151209_010320_foobar/down/02_bar.sql
-DROP TABLE foo1;
+DROP TABLE bar1;
 
 -- 20151209_010320_foobar/down/01_foo.sql
-DROP TABLE foo0;
+DROP TABLE bar0;
 
 `);
         });
