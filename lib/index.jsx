@@ -24,6 +24,7 @@ class Sardine {
     this.config = config;
     this.migrations = new Migrations(config);
     this.finder = new Finder(config.directory);
+
     Object.assign(this, handlers);
   }
 
@@ -115,10 +116,6 @@ class Sardine {
       .then(this.migrations.down);
   }
 
-  _mergeFiles(prev, file) {
-    return prev + `-- ${file.filename}\n${file.contents.toString()}\n\n`;
-  }
-
   compile(migrationName) {
     return this.finder.discover()
       .then((discovered) => {
@@ -127,8 +124,8 @@ class Sardine {
 
         down.files.reverse();
 
-        up = up.files.reduce(this._mergeFiles, '');
-        down = down.files.reduce(this._mergeFiles, '');
+        up = up.files.reduce(this._mergeFiles.bind(this), '');
+        down = down.files.reduce(this._mergeFiles.bind(this), '');
 
         return {
           migration,
@@ -136,6 +133,12 @@ class Sardine {
         };
       });
   }
+
+  _mergeFiles(prev, { contents, filename }) {
+    const processedContents = this.config.preprocess(contents.toString(), filename);
+    return prev + `-- ${filename}\n${processedContents}\n\n`;
+  }
+
 }
 
 Object.assign(Sardine, handlers);
