@@ -1,9 +1,16 @@
+import path from 'path';
+
+import _ from 'lodash';
+
 import { config } from '../../lib/config';
 import { showError } from '../util';
 
 function command(fn) {
   return function commandWrapper(...args) {
-    config()
+    const options = _.last(args);
+    const configPath = path.resolve(process.cwd(), options.parent.config);
+
+    config(configPath)
       .then((c) => fn(c, ...args))
       .catch((e) => {
         showError(e.stack || e.message);

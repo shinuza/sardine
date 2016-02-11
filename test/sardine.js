@@ -37,17 +37,17 @@ describe('Sardine', () => {
   before('Creating migration directory', () => mkdirpAsync(directory));
   after('Removing migration directory', () => rmrfAsync(directory));
 
-  describe('.init()', () => {
+  describe('.init(path)', () => {
     const sardineConfigPath = resolve(SANDBOX, SARDINE_CONFIG);
 
     after('Removing sardine config file', () => rmrfAsync(sardineConfigPath));
 
     it('should fire success event on creation', () =>
-      Sardine.init(SANDBOX)
+      Sardine.init(sardineConfigPath)
         .then((missing) => assert.equal(missing, true)));
 
     it('should fire noop event when the file already exists', () =>
-      Sardine.init(SANDBOX)
+      Sardine.init(sardineConfigPath)
         .then((missing) => assert.equal(missing, false))
         .then(() => readFileAsync(sardineConfigPath))
         .then((contents) => assert.deepEqual(contents.toString(), CONFIG_TEMPLATE)));
