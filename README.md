@@ -148,7 +148,7 @@ You can override this behavior by passing a path the `--config` CLI option.
 
 ### migration
 
-A `migration` Object looks something this.
+A `migration` object looks something like this.
 
 ```javascript
 {
@@ -158,12 +158,12 @@ A `migration` Object looks something this.
       {
         filename: '01_foo.sql',
         contents: 'CREATE TABLE foo1()',
-        checksum: ''
+        checksum: checksum(contents),
       },
       {
         filename: '02_foo.sql',
         contents: 'CREATE TABLE foo2()',
-        checksum: ''
+        checksum: checksum(contents),
       },
     ],
     checksum: checksum(files)
@@ -173,12 +173,12 @@ A `migration` Object looks something this.
       {
         filename: '01_foo.sql',
         contents: 'DROP TABLE foo1',
-        checksum: ''
+        checksum: checksum(contents),
       },
       {
         filename: '02_foo.sql',
         contents: 'DROP TABLE foo2',
-        checksum: ''
+        checksum: checksum(contents),
       },
     ],
     checksum: checksum(files)
